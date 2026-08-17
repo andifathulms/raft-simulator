@@ -29,7 +29,7 @@ import {
   type NetworkState,
 } from './network'
 import { prngFromSeed, type Prng } from './prng'
-import type { AppliedRecord, InFlight, Trace, TraceEvent, TraceStep } from './trace'
+import type { AppliedRecord, ElectionTimer, InFlight, Trace, TraceEvent, TraceStep } from './trace'
 
 /** A scripted user action, fixed to a virtual timestamp. */
 export type Action =
@@ -160,6 +160,13 @@ class Simulation {
   /** The network's own PRNG stream, independent of every node's. */
   private prng: Prng
   private inFlight: InFlight[] = []
+  /**
+   * Sim-level bookkeeping, not part of `NodeState`: when each node's election timer
+   * was last armed and for how long. Mirrors `inFlight` — the algorithm hands back a
+   * `TimerRequest { delay }` and forgets it, so recording *when* it was armed is the
+   * driver's job, exactly as recording *when* a message will arrive is.
+   */
+  private electionTimers: (ElectionTimer | null)[]
   private checker: CheckerState = EMPTY_CHECKER_STATE
   private readonly steps: TraceStep[] = []
   private readonly violations: Violation[] = []
@@ -181,6 +188,7 @@ class Simulation {
       )
     }
     this.nodes = spec.initialNodes === undefined ? fresh : [...spec.initialNodes]
+    this.electionTimers = new Array<ElectionTimer | null>(spec.nodeCount).fill(null)
     this.crashed = new Array<boolean>(spec.nodeCount).fill(false)
     this.network = fullyConnected(spec.nodeCount)
     // Stream 0 belongs to the network; nodes take streams 1..n.
@@ -204,6 +212,7 @@ class Simulation {
       }
       const armed = resetElectionTimer(node, this.raft)
       this.nodes[id] = armed.state
+      this.electionTimers[id] = { lastHeartbeat: 0, electionTimeout: armed.timer.delay }
       this.queue.schedule(armed.timer.delay, { kind: 'timer', node: id, timer: armed.timer })
     }
     // Sorted by time, then by the order written in the scenario. Never by object key
@@ -425,6 +434,17 @@ class Simulation {
     const result = raftStep(node, input, this.raft)
     this.nodes = this.nodes.map((existing, index) => (index === id ? result.state : existing))
 
+    // The algorithm reports only that a timer generation changed (Figure 2's own
+    // state has no notion of wall time to record an arming moment against). When it
+    // changed, either a fresh election timer is in `result.timers` — record when and
+    // for how long — or there is none, meaning the timer was stopped outright
+    // (Figure 2, Rules for Servers, Leaders: a leader has no election timeout).
+    if (result.state.electionTimerId !== node.electionTimerId) {
+      const armed = result.timers.find((timer) => timer.kind === 'election')
+      this.electionTimers[id] =
+        armed === undefined ? null : { lastHeartbeat: this.queue.now, electionTimeout: armed.delay }
+    }
+
     for (const timer of result.timers) {
       this.queue.scheduleAfter(timer.delay, { kind: 'timer', node: id, timer })
     }
@@ -490,6 +510,7 @@ class Simulation {
       network: this.network,
       // In-flight is genuinely per-step: it is the only field that cannot be shared.
       inFlight: [...this.inFlight].sort((a, b) => a.arrivesAt - b.arrivesAt || a.seq - b.seq),
+      electionTimers: [...this.electionTimers],
       applied,
       violations: checked.violations,
     })

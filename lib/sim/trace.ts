@@ -15,6 +15,39 @@ import { heldEntries, type Log } from '@/lib/raft/log'
 import type { Message, NodeId, NodeState } from '@/lib/raft/types'
 import type { NetworkState } from './network'
 
+/**
+ * A follower's (or candidate's) running election timer, as last armed.
+ *
+ * Figure 2, Rules for Servers, Followers rule 2, arms this with a randomized delay
+ * drawn from the node's own PRNG stream — the mechanism that breaks split votes.
+ * `lastHeartbeat` and `electionTimeout` are recorded exactly as the arming event saw
+ * them, so a renderer can recover "how much of the timeout is left" at any step
+ * without recomputing anything the algorithm decided. A leader has no election
+ * timeout (Figure 2), so its slot is `null`.
+ */
+export interface ElectionTimer {
+  /** Virtual time the timer was last (re)armed — a heartbeat, a vote grant, a restart. */
+  readonly lastHeartbeat: number
+  /** The randomized duration drawn at that arming. */
+  readonly electionTimeout: number
+}
+
+/**
+ * Fraction of the election timeout remaining at `now`, from 1 (just armed) to 0 (due
+ * to fire). Pure function of the three recorded values — never a CSS duration — so it
+ * gives the same answer stepping forward, stepping backward, or jumping directly to a
+ * step: there is no elapsed wall-clock state to desynchronise from the scrubber.
+ */
+export function electionTimeoutFraction(
+  now: number,
+  timer: ElectionTimer | null,
+): number {
+  if (timer === null || timer.electionTimeout <= 0) return 0
+  const elapsed = now - timer.lastHeartbeat
+  const remaining = 1 - elapsed / timer.electionTimeout
+  return Math.min(1, Math.max(0, remaining))
+}
+
 /** A message on the wire: sent, not yet delivered. */
 export interface InFlight {
   readonly message: Message
@@ -70,6 +103,8 @@ export interface TraceStep {
   readonly crashed: readonly boolean[]
   readonly network: NetworkState
   readonly inFlight: readonly InFlight[]
+  /** Each node's running election timer, by node id. `null` where none is armed. */
+  readonly electionTimers: readonly (ElectionTimer | null)[]
   readonly applied: readonly AppliedRecord[]
   /** Violations newly observed at this step. */
   readonly violations: readonly Violation[]
