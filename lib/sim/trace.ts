@@ -170,6 +170,26 @@ export function violationSteps(trace: Trace): readonly number[] {
   return out
 }
 
+/** A contiguous run of step indices. */
+export interface StepRun {
+  readonly from: number
+  readonly to: number
+}
+
+/** Collapse an ascending list of step indices into contiguous runs. */
+export function runsOf(marks: readonly number[]): readonly StepRun[] {
+  const runs: StepRun[] = []
+  for (const mark of marks) {
+    const open = runs[runs.length - 1]
+    if (open !== undefined && mark === open.to + 1) {
+      runs[runs.length - 1] = { from: open.from, to: mark }
+    } else {
+      runs.push({ from: mark, to: mark })
+    }
+  }
+  return runs
+}
+
 /**
  * A stable, order-independent digest of a trace. Two runs of the same
  * `(config, seed, actions, flags)` must produce the same string on any machine —

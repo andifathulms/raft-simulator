@@ -11,7 +11,7 @@
 
 import { useEffect, useMemo } from 'react'
 import type { Dictionary } from '@/lib/i18n'
-import { describeEvent, type Trace } from '@/lib/sim/trace'
+import { describeEvent, runsOf, type Trace } from '@/lib/sim/trace'
 
 interface Props {
   readonly trace: Trace
@@ -33,17 +33,6 @@ interface Props {
 function nextAfter(marks: readonly number[], current: number): number | null {
   for (const mark of marks) if (mark > current) return mark
   return null
-}
-
-/** Collapse an ascending list of step indices into contiguous runs. */
-function runsOf(marks: readonly number[]): { from: number; to: number }[] {
-  const runs: { from: number; to: number }[] = []
-  for (const mark of marks) {
-    const open = runs[runs.length - 1]
-    if (open !== undefined && mark === open.to + 1) open.to = mark
-    else runs.push({ from: mark, to: mark })
-  }
-  return runs
 }
 
 export function Timeline({

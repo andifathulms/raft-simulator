@@ -9,7 +9,7 @@
 
 import type { Role } from '@/lib/raft/types'
 
-const ROLE_FILL: Record<Role, string> = {
+export const ROLE_FILL: Record<Role, string> = {
   follower: 'fill-follower',
   candidate: 'fill-candidate',
   leader: 'fill-leader',
