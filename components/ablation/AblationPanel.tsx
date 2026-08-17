@@ -19,6 +19,7 @@ import {
 } from '@/lib/raft/rules'
 import type { Dictionary, Locale } from '@/lib/i18n'
 import { scenarioById } from '@/data/scenarios'
+import type { Violation } from '@/lib/invariants/types'
 
 interface Props {
   readonly flags: AblationFlags
@@ -27,9 +28,28 @@ interface Props {
   readonly dict: Dictionary
   readonly locale: Locale
   readonly compact?: boolean
+  /**
+   * DESIGN-REWORK.md §4: when a rule is off and the property it protects has broken
+   * in the run being watched, say so on the rule itself rather than making the
+   * reader cross-reference the invariant panel. Omitted on the standalone `/ablasi`
+   * explorer, which previews toggles against no running trace.
+   */
+  readonly violations?: readonly Violation[]
+  readonly upToStep?: number
+  readonly onJump?: (step: number) => void
 }
 
-export function AblationPanel({ flags, onToggle, onReset, dict, locale, compact = false }: Props) {
+export function AblationPanel({
+  flags,
+  onToggle,
+  onReset,
+  dict,
+  locale,
+  compact = false,
+  violations,
+  upToStep,
+  onJump,
+}: Props) {
   return (
     <div className="flex flex-col gap-3">
       <ModifiedBanner flags={flags} dict={dict} />
@@ -39,9 +59,16 @@ export function AblationPanel({ flags, onToggle, onReset, dict, locale, compact 
           const copy = dict.ablation.rules[flag]
           const enabled = flags[flag]
           const scenario = scenarioById(descriptor.scenarioId)
+          const brokenAt =
+            !enabled && violations !== undefined && upToStep !== undefined
+              ? violations.find(
+                  (violation) => violation.property === descriptor.protects && violation.stepIndex <= upToStep,
+                )
+              : undefined
           return (
             <li
               key={flag}
+              id={`ablation-${flag}`}
               className={[
                 'border p-4',
                 enabled ? 'border-ink-rule bg-stock-raised' : 'border-vermilion bg-vermilion/5',
@@ -99,6 +126,20 @@ export function AblationPanel({ flags, onToggle, onReset, dict, locale, compact 
                       </Link>
                     </Row>
                   </dl>
+                  {brokenAt !== undefined && (
+                    <p className="mt-3 flex items-center gap-2 border-t border-ink-rule pt-2.5 font-sans text-micro text-vermilion">
+                      {dict.ablation.brokenNote}
+                      {onJump !== undefined && (
+                        <button
+                          type="button"
+                          className="btn btn-small btn-violation"
+                          onClick={() => onJump(brokenAt.stepIndex)}
+                        >
+                          {dict.invariants.stepBack}
+                        </button>
+                      )}
+                    </p>
+                  )}
                 </div>
               </div>
             </li>

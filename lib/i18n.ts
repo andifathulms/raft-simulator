@@ -53,7 +53,6 @@ interface Dictionary {
     readonly invariantsHelp: string
     readonly ablationHelp: string
     readonly forExperts: string
-    readonly readMore: string
   }
   readonly home: {
     readonly lede: string
@@ -121,6 +120,7 @@ interface Dictionary {
     readonly allHolding: string
     readonly atStep: string
     readonly stepBack: string
+    readonly disabledBy: string
     readonly names: Readonly<Record<string, string>>
   }
   readonly ablation: {
@@ -137,6 +137,7 @@ interface Dictionary {
     readonly unmodified: string
     readonly reset: string
     readonly ifOff: string
+    readonly brokenNote: string
     readonly rules: Readonly<Record<string, { readonly title: string; readonly body: string }>>
   }
   readonly scenarios: {
@@ -211,7 +212,6 @@ const id: Dictionary = {
     invariantsHelp: 'Kelima janji Raft, diperiksa ulang setelah setiap peristiwa. Selama semuanya hijau, algoritmanya bertahan. Kalau satu berubah merah, di situlah letak kerusakannya.',
     ablationHelp: 'Matikan salah satu aturan di bawah ini, lalu jalankan lagi. Aturan yang tampak berlebihan akan menunjukkan gunanya begitu ia tidak ada.',
     forExperts: 'Untuk yang sudah kenal Raft',
-    readMore: 'Selengkapnya',
   },
   home: {
     lede: 'Simulator Raft yang bisa Anda rusak dengan sengaja. Simulasi diskret deterministik, pemeriksaan invariant keamanan yang berjalan terus, dan mode ablasi yang mematikan satu per satu aturan Raft supaya jaminan yang dijaganya benar-benar terlihat gagal.',
@@ -289,6 +289,7 @@ const id: Dictionary = {
       'Kelima properti berlaku. Di bawah tekanan jaringan yang buruk, ini sendiri sudah informatif.',
     atStep: 'pada langkah',
     stepBack: 'Lompat ke sana',
+    disabledBy: 'Aturan yang dimatikan',
     names: {
       'election-safety': 'Election Safety',
       'leader-append-only': 'Leader Append-Only',
@@ -312,6 +313,7 @@ const id: Dictionary = {
     unmodified: 'Raft tanpa modifikasi — semua aturan ditegakkan.',
     reset: 'Aktifkan semua aturan',
     ifOff: 'Kalau aturan ini dimatikan, janji berikut bisa gagal',
+    brokenNote: 'Properti ini sudah gagal dalam run ini.',
     rules: {
       electionRestriction: {
         title: 'Election restriction',
@@ -416,7 +418,6 @@ const en: Dictionary = {
     invariantsHelp: 'Raft’s five promises, re-checked after every event. While they are all green the algorithm is holding. When one turns red, that is where it broke.',
     ablationHelp: 'Switch one of the rules below off, then run it again. A rule that looks redundant makes its case the moment it is gone.',
     forExperts: 'If you already know Raft',
-    readMore: 'More',
   },
   home: {
     lede: 'A Raft simulator you can break on purpose. Deterministic discrete-event simulation, continuous safety-invariant checking, and an ablation mode that turns individual Raft rules off so you can watch the guarantee they protect actually fail.',
@@ -493,6 +494,7 @@ const en: Dictionary = {
       'All five properties hold. Under an adversarial network that is itself informative.',
     atStep: 'at step',
     stepBack: 'Jump there',
+    disabledBy: 'Disabled rule',
     names: id.invariants.names,
   },
   ablation: {
@@ -510,6 +512,7 @@ const en: Dictionary = {
     unmodified: 'Unmodified Raft — every rule enforced.',
     reset: 'Enforce every rule',
     ifOff: 'Switch this rule off and the following promise can fail',
+    brokenNote: 'This property has already broken in this run.',
     rules: {
       electionRestriction: {
         title: 'Election restriction',

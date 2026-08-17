@@ -9,6 +9,7 @@ import {
   UNMODIFIED_RAFT,
   descriptorFor,
   disabledRules,
+  disabledRulesProtecting,
   isModifiedRaft,
 } from '@/lib/raft/rules'
 import { logOfNode } from '../helpers/nodes'
@@ -352,6 +353,43 @@ describe('scenario phenomena actually occur', () => {
       })
     }
     for (const [, holders] of leadersPerTerm) expect(holders.size).toBe(1)
+  })
+})
+
+/**
+ * `disabledRulesProtecting` is what lets the invariant panel name the rule
+ * responsible for a broken property (DESIGN-REWORK.md §4) — so it has to name every
+ * off rule that defends the property, not just one, since Election Safety alone has
+ * four.
+ */
+describe('disabledRulesProtecting', () => {
+  it('finds nothing when every rule is on', () => {
+    expect(disabledRulesProtecting(UNMODIFIED_RAFT, 'election-safety')).toEqual([])
+  })
+
+  it('finds the one rule protecting a property with a single defender', () => {
+    const flags = { ...UNMODIFIED_RAFT, electionRestriction: false }
+    expect(disabledRulesProtecting(flags, 'leader-completeness')).toEqual(['electionRestriction'])
+  })
+
+  it('finds every off rule when a property has more than one defender', () => {
+    const flags = {
+      ...UNMODIFIED_RAFT,
+      termIncrementOnCandidacy: false,
+      stepDownOnHigherTerm: false,
+      persistVotedFor: true,
+      jointConsensus: false,
+    }
+    expect(disabledRulesProtecting(flags, 'election-safety')).toEqual([
+      'termIncrementOnCandidacy',
+      'stepDownOnHigherTerm',
+      'jointConsensus',
+    ])
+  })
+
+  it('never names a rule that is still on', () => {
+    const flags = { ...UNMODIFIED_RAFT, electionRestriction: false }
+    expect(disabledRulesProtecting(flags, 'log-matching')).toEqual([])
   })
 })
 

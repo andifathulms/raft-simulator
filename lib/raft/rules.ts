@@ -246,3 +246,19 @@ export function descriptorFor(flag: AblationFlagName): RuleDescriptor {
   if (found === undefined) throw new Error(`No descriptor for ablation flag ${flag}`)
   return found
 }
+
+/**
+ * The disabled rules that defend `property`, in `ABLATION_FLAG_NAMES` order.
+ *
+ * A broken property and an off rule are two views of the same fact; this is what
+ * lets the invariant panel name the rule responsible instead of leaving the reader
+ * to match a property name against the ablation panel by hand. More than one rule
+ * can defend the same property — Election Safety has four — so this returns all of
+ * them, not the first.
+ */
+export function disabledRulesProtecting(
+  flags: AblationFlags,
+  property: SafetyProperty,
+): readonly AblationFlagName[] {
+  return disabledRules(flags).filter((flag) => descriptorFor(flag).protects === property)
+}

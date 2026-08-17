@@ -302,6 +302,7 @@ export function Simulator({ locale }: { locale: Locale }) {
                     violations={trace.violations}
                     upToStep={step}
                     dict={dict}
+                    flags={share.flags}
                     onJump={(target) => {
                       setPlaying(false)
                       setStep(target)
@@ -348,30 +349,36 @@ export function Simulator({ locale }: { locale: Locale }) {
 
           <SimGuide dict={dict} />
 
-          <section className="card">
-            <details>
-              <summary className="panel-head cursor-pointer list-none">
-                <h2 className="panel-title">{dict.nav.ablation}</h2>
-                <span className="ml-auto font-sans text-micro text-ink-faint">
-                  {dict.plain.readMore}
-                </span>
-              </summary>
-              <div className="p-4">
-                <p className="mb-4 max-w-prose font-sans text-label leading-relaxed text-ink-soft">
-                  {dict.plain.ablationHelp}
-                </p>
-                <div className="max-w-3xl">
-                  <AblationPanel
-                    flags={share.flags}
-                    onToggle={onToggle}
-                    onReset={() => setShare((state) => ({ ...state, flags: UNMODIFIED_RAFT }))}
-                    dict={dict}
-                    locale={locale}
-                    compact
-                  />
-                </div>
+          {/*
+           * The flagship feature, not a disclosure someone might never open. Anyone
+           * who never expanded the old <details> had used a worse RaftScope; this is
+           * always on screen, the same way the cluster and the ledger are.
+           */}
+          <section className="card" aria-label={dict.nav.ablation}>
+            <div className="panel-head">
+              <h2 className="panel-title">{dict.nav.ablation}</h2>
+            </div>
+            <div className="p-4">
+              <p className="mb-4 max-w-prose font-sans text-label leading-relaxed text-ink-soft">
+                {dict.plain.ablationHelp}
+              </p>
+              <div className="max-w-3xl">
+                <AblationPanel
+                  flags={share.flags}
+                  onToggle={onToggle}
+                  onReset={() => setShare((state) => ({ ...state, flags: UNMODIFIED_RAFT }))}
+                  dict={dict}
+                  locale={locale}
+                  compact
+                  violations={trace.violations}
+                  upToStep={step}
+                  onJump={(target) => {
+                    setPlaying(false)
+                    setStep(target)
+                  }}
+                />
               </div>
-            </details>
+            </div>
           </section>
         </>
       )}

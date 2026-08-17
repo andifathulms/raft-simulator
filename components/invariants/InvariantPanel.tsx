@@ -15,6 +15,7 @@
 
 import type { Dictionary } from '@/lib/i18n'
 import { SAFETY_PROPERTIES, type SafetyProperty, type Violation } from '@/lib/invariants/types'
+import { disabledRulesProtecting, type AblationFlags } from '@/lib/raft/rules'
 
 interface Props {
   readonly violations: readonly Violation[]
@@ -22,9 +23,11 @@ interface Props {
   readonly upToStep: number
   readonly dict: Dictionary
   readonly onJump: (step: number) => void
+  /** DESIGN-REWORK.md §4: a broken property names the ablation rule(s) responsible. */
+  readonly flags: AblationFlags
 }
 
-export function InvariantPanel({ violations, upToStep, dict, onJump }: Props) {
+export function InvariantPanel({ violations, upToStep, dict, onJump, flags }: Props) {
   const sofar = violations.filter((violation) => violation.stepIndex <= upToStep)
   const firstByProperty = new Map<SafetyProperty, Violation>()
   for (const violation of sofar) {
@@ -99,6 +102,20 @@ export function InvariantPanel({ violations, upToStep, dict, onJump }: Props) {
                     node {violation.nodes.join(', ')} · {dict.invariants.atStep}{' '}
                     {violation.stepIndex}
                   </p>
+                  {/* The rule this run actually turned off to produce this violation
+                      — named here, not left for the reader to match against the
+                      ablation panel by hand. Not every violation has one: a fuzz
+                      failure under unmodified Raft would name none, which is exactly
+                      the signal that something is really broken rather than switched
+                      off on purpose. */}
+                  {disabledRulesProtecting(flags, property).map((flag) => (
+                    <p key={flag} className="mt-1 font-mono text-micro text-vermilion">
+                      {dict.invariants.disabledBy}:{' '}
+                      <a href={`#ablation-${flag}`} className="underline decoration-dotted underline-offset-2 hover:text-ink">
+                        {dict.ablation.rules[flag]?.title ?? flag}
+                      </a>
+                    </p>
+                  ))}
                   <button
                     type="button"
                     className="btn btn-small btn-violation mt-2"
