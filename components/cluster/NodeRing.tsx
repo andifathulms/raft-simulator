@@ -13,7 +13,7 @@ import type { Dictionary } from '@/lib/i18n'
 import { describeConfiguration, isMember, type Configuration } from '@/lib/raft/configuration'
 import { configurationOf } from '@/lib/raft/log'
 import type { NodeState } from '@/lib/raft/types'
-import type { InFlight, TraceStep } from '@/lib/sim/trace'
+import { electionTimeoutFraction, type InFlight, type TraceStep } from '@/lib/sim/trace'
 
 interface Props {
   readonly step: TraceStep
@@ -26,6 +26,13 @@ interface Props {
 const SIZE = 420
 const CENTRE = SIZE / 2
 const RADIUS = 150
+
+// The depleting rule, sized to sit between the node shape (extends to about ±22)
+// and the term/commit line beneath it (at y=40).
+const BAR_WIDTH = 34
+const BAR_HALF_WIDTH = BAR_WIDTH / 2
+const BAR_HEIGHT = 3
+const BAR_Y = 26
 
 function position(index: number, count: number): { x: number; y: number } {
   // Node 0 at the top, then clockwise. Deterministic layout: the same cluster is
@@ -161,6 +168,33 @@ export function NodeRing({ step, dict, onNodeAction, selected, onSelect }: Props
                 />
               )}
               <NodeShape role={node.role} crashed={crashed} />
+              {/* Figure 2, Rules for Servers, Followers rule 2: the randomized election
+                  timeout, depleting toward the instant this follower becomes a
+                  candidate. A pure function of (now, lastHeartbeat, electionTimeout)
+                  from the trace at this step — not a CSS animation with a duration —
+                  so it refills on stepping back and redraws correctly on a jump. Drawn
+                  only for followers: a leader has no election timeout, and a candidate
+                  racing its own timeout is a different moment than this document
+                  addresses. */}
+              {node.role === 'follower' && !crashed && (
+                <g aria-hidden>
+                  <rect
+                    x={-BAR_HALF_WIDTH}
+                    y={BAR_Y}
+                    width={BAR_WIDTH}
+                    height={BAR_HEIGHT}
+                    className="fill-stock-deep stroke-ink-rule"
+                    strokeWidth="0.5"
+                  />
+                  <rect
+                    x={-BAR_HALF_WIDTH}
+                    y={BAR_Y}
+                    width={BAR_WIDTH * electionTimeoutFraction(step.time, step.electionTimers[node.id] ?? null)}
+                    height={BAR_HEIGHT}
+                    className="fill-ink-edge"
+                  />
+                </g>
+              )}
               {/* The digit sits on the role fill, so its colour has to follow the
                   fill's lightness: pale ink on the deep blue leader, dark ink on the
                   mid-toned follower and the amber candidate. Set at 19px bold, which
