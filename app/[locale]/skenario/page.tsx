@@ -1,8 +1,9 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { SCENARIOS } from '@/data/scenarios'
-import { LOCALES, dictionary, isLocale, type Locale } from '@/lib/i18n'
+import { LOCALES, dictionary, isLocale, type Dictionary, type Locale } from '@/lib/i18n'
 import { descriptorFor } from '@/lib/raft/rules'
+import { NETWORK_TIERS, networkTier, type NetworkTier } from '@/lib/scenarios/tier'
 
 export function generateStaticParams(): { locale: Locale }[] {
   return LOCALES.map((locale) => ({ locale }))
@@ -44,7 +45,12 @@ export default function ScenariosPage({ params }: { params: { locale: string } }
             entry.ablation === undefined ? null : descriptorFor(entry.ablation.flag)
           return (
             <li key={entry.id} className="card flex flex-col p-5">
-              <h2 className="font-serif text-xl leading-snug">{entry.title[locale]}</h2>
+              <div className="flex items-start justify-between gap-3">
+                <h2 className="font-serif text-xl leading-snug">{entry.title[locale]}</h2>
+                {/* DESIGN-REWORK.md §5: the drop rate is the knob deciding whether a
+                    run is calm or chaotic, and a number in a <dl> does not scan. */}
+                <NetworkTierMark tier={networkTier(entry.spec.network.dropPerMille)} dict={dict} />
+              </div>
               <p className="mt-0.5 font-mono text-micro text-ink-faint">{entry.id}</p>
               <p className="mt-2.5 font-sans text-body leading-relaxed">{entry.summary[locale]}</p>
 
@@ -101,5 +107,35 @@ export default function ScenariosPage({ params }: { params: { locale: string } }
         })}
       </ul>
     </div>
+  )
+}
+
+/**
+ * Three bars, filled left to right by tier — shape as well as colour, so it reads on
+ * a greyscale screenshot and not just by eye colour. `title` and `sr-only` text carry
+ * the same word for anyone who cannot see the bars at all.
+ */
+function NetworkTierMark({ tier, dict }: { tier: NetworkTier; dict: Dictionary }) {
+  const filled = NETWORK_TIERS.indexOf(tier) + 1
+  return (
+    <span
+      className="mt-1 flex shrink-0 items-end gap-0.5"
+      title={`${dict.scenarios.network}: ${dict.scenarios.tiers[tier]}`}
+    >
+      <span className="sr-only">
+        {dict.scenarios.network}: {dict.scenarios.tiers[tier]}
+      </span>
+      {NETWORK_TIERS.map((step, index) => (
+        <span
+          key={step}
+          aria-hidden
+          className={[
+            'w-1.5 border border-ink-edge',
+            index < filled ? 'bg-ink-soft' : 'bg-transparent',
+          ].join(' ')}
+          style={{ height: `${6 + index * 4}px` }}
+        />
+      ))}
+    </span>
   )
 }

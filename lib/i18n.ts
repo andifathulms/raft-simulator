@@ -145,6 +145,9 @@ interface Dictionary {
     readonly phenomenon: string
     readonly open: string
     readonly breaksWith: string
+    /** DESIGN-REWORK.md §5 — the calm/lossy/hostile network-tier indicator. */
+    readonly network: string
+    readonly tiers: Readonly<Record<'calm' | 'lossy' | 'hostile', string>>
   }
   /** Field labels for the structured event-detail panel. DESIGN-REWORK.md §3.3. */
   readonly eventDetail: {
@@ -374,6 +377,12 @@ const id: Dictionary = {
     phenomenon: 'Fenomena',
     open: 'Buka',
     breaksWith: 'Rusak kalau aturan ini dimatikan',
+    network: 'Jaringan',
+    tiers: {
+      calm: 'Tenang — tidak ada pesan yang hilang',
+      lossy: 'Kehilangan pesan — kondisi normal Raft',
+      hostile: 'Bermusuhan — kehilangan pesan yang berat',
+    },
   },
   eventDetail: {
     sender: 'Pengirim',
@@ -596,6 +605,12 @@ const en: Dictionary = {
     phenomenon: 'Phenomenon',
     open: 'Open',
     breaksWith: 'Breaks with this rule off',
+    network: 'Network',
+    tiers: {
+      calm: 'Calm — nothing gets lost',
+      lossy: "Lossy — Raft's normal operating condition",
+      hostile: 'Hostile — heavy message loss',
+    },
   },
   eventDetail: {
     sender: 'Sender',
