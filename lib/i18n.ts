@@ -164,6 +164,13 @@ interface Dictionary {
     readonly yes: string
     readonly no: string
   }
+  /** The route-level error boundary at app/[locale]/simulasi/error.tsx. */
+  readonly error: {
+    readonly title: string
+    readonly body: string
+    readonly retry: string
+    readonly backToScenarios: string
+  }
 }
 
 const id: Dictionary = {
@@ -385,6 +392,13 @@ const id: Dictionary = {
     yes: 'Ya',
     no: 'Tidak',
   },
+  error: {
+    title: 'Terjadi kesalahan yang tidak tertangani',
+    body:
+      'Tampilan ini gagal dirender. Kondisi simulasi ada di tautan halaman ini, jadi tidak ada yang hilang — coba lagi, atau kembali ke daftar skenario.',
+    retry: 'Coba lagi',
+    backToScenarios: 'Ke daftar skenario',
+  },
 }
 
 const en: Dictionary = {
@@ -599,6 +613,13 @@ const en: Dictionary = {
     servers: 'Servers',
     yes: 'Yes',
     no: 'No',
+  },
+  error: {
+    title: 'Something went wrong rendering this',
+    body:
+      "This view failed to render. The simulation's state lives in this page's own link, so nothing is lost — try again, or go back to the scenario list.",
+    retry: 'Try again',
+    backToScenarios: 'Back to scenarios',
   },
 }
 
