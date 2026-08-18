@@ -244,6 +244,21 @@ export function Simulator({ locale }: { locale: Locale }) {
             </p>
           </section>
 
+          {/*
+           * The workbench split. `26rem` is not an arbitrary number: it is sized to
+           * the cluster ring's own `max-w-[420px]` plus its card's padding, so the
+           * ring neither gets squeezed nor grows a moat of empty space beside it. The
+           * ledger takes the entire remainder, because it is the object with an
+           * unbounded number of columns. `xl` (1280px), not `lg`, because below that
+           * a fixed 26rem sidebar leaves too little room for the ledger to earn a
+           * second column rather than a second row.
+           *
+           * This ratio is deliberately not shared with the two other two-column
+           * grids in the app (app/[locale]/ablasi/page.tsx, components/SimGuide.tsx)
+           * — see the comment at each. All three solve a different shape: a fixed
+           * sidebar beside an unbounded main area, a fixed reference rail beside a
+           * fluid one, and two panels of genuinely equal weight, respectively.
+           */}
           <div className="grid gap-5 xl:grid-cols-[minmax(0,26rem)_minmax(0,1fr)]">
             <div className="flex flex-col gap-5">
               <section className="card" aria-label={dict.sim.cluster}>

@@ -35,6 +35,14 @@ export default function AblationPage({ params }: { params: { locale: string } })
         </p>
       </header>
 
+      {/*
+       * The content-plus-rail split: the fluid rule explorer is the reason to be on
+       * this page, and the rail is a fixed 340px because the two reference cards
+       * it holds are short and never need more. `lg` (1024px), because a fixed-width
+       * rail needs less room to justify itself than a fixed-width *sidebar* does —
+       * contrast components/Simulator.tsx's 26rem-at-xl workbench split, which is a
+       * different shape for a different reason, not a drift from this one.
+       */}
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,340px)]">
         <AblationExplorer locale={locale} />
 
