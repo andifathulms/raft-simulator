@@ -85,9 +85,6 @@ interface Dictionary {
     readonly nextCommit: string
     readonly nextViolation: string
     readonly computing: string
-    readonly inFlight: string
-    readonly noMessages: string
-    readonly event: string
     readonly share: string
     readonly shared: string
     readonly submit: string
@@ -145,6 +142,24 @@ interface Dictionary {
     readonly phenomenon: string
     readonly open: string
     readonly breaksWith: string
+  }
+  /** Field labels for the structured event-detail panel. DESIGN-REWORK.md §3.3. */
+  readonly eventDetail: {
+    readonly sender: string
+    readonly receiver: string
+    readonly rpc: string
+    readonly term: string
+    readonly duplicate: string
+    readonly reason: string
+    readonly node: string
+    readonly timer: string
+    readonly command: string
+    readonly accepted: string
+    readonly redirectedTo: string
+    readonly groups: string
+    readonly servers: string
+    readonly yes: string
+    readonly no: string
   }
 }
 
@@ -247,9 +262,6 @@ const id: Dictionary = {
     nextCommit: 'Commit berikutnya',
     nextViolation: 'Pelanggaran berikutnya',
     computing: 'Menghitung jejak…',
-    inFlight: 'Pesan di jalan',
-    noMessages: 'Tidak ada pesan di jalan.',
-    event: 'Peristiwa',
     share: 'Salin tautan',
     shared: 'Tautan disalin',
     submit: 'Kirim entry',
@@ -350,6 +362,23 @@ const id: Dictionary = {
     phenomenon: 'Fenomena',
     open: 'Buka',
     breaksWith: 'Rusak kalau aturan ini dimatikan',
+  },
+  eventDetail: {
+    sender: 'Pengirim',
+    receiver: 'Penerima',
+    rpc: 'RPC',
+    term: 'Term',
+    duplicate: 'Duplikat',
+    reason: 'Alasan',
+    node: 'Node',
+    timer: 'Timer',
+    command: 'Command',
+    accepted: 'Diterima',
+    redirectedTo: 'Dialihkan ke',
+    groups: 'Kelompok partisi',
+    servers: 'Server',
+    yes: 'Ya',
+    no: 'Tidak',
   },
 }
 
@@ -453,9 +482,6 @@ const en: Dictionary = {
     nextCommit: 'Next commit',
     nextViolation: 'Next violation',
     computing: 'Computing trace…',
-    inFlight: 'In flight',
-    noMessages: 'Nothing in flight.',
-    event: 'Event',
     share: 'Copy link',
     shared: 'Link copied',
     submit: 'Submit entry',
@@ -549,6 +575,23 @@ const en: Dictionary = {
     phenomenon: 'Phenomenon',
     open: 'Open',
     breaksWith: 'Breaks with this rule off',
+  },
+  eventDetail: {
+    sender: 'Sender',
+    receiver: 'Receiver',
+    rpc: 'RPC',
+    term: 'Term',
+    duplicate: 'Duplicate',
+    reason: 'Reason',
+    node: 'Node',
+    timer: 'Timer',
+    command: 'Command',
+    accepted: 'Accepted',
+    redirectedTo: 'Redirected to',
+    groups: 'Partition groups',
+    servers: 'Servers',
+    yes: 'Yes',
+    no: 'No',
   },
 }
 

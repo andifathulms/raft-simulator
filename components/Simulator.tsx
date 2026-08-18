@@ -286,7 +286,6 @@ export function Simulator({ locale }: { locale: Locale }) {
                       </button>
                     </div>
                   </div>
-                  <InFlightList step={current} dict={dict} />
                 </div>
               </section>
 
@@ -381,38 +380,6 @@ export function Simulator({ locale }: { locale: Locale }) {
             </div>
           </section>
         </>
-      )}
-    </div>
-  )
-}
-
-function InFlightList({
-  step,
-  dict,
-}: {
-  step: {
-    inFlight: readonly {
-      message: { type: string; from: number; to: number; term: number }
-      arrivesAt: number
-      seq: number
-    }[]
-  }
-  dict: ReturnType<typeof dictionary>
-}) {
-  return (
-    <div className="mt-4 border-t border-ink-rule pt-3">
-      <h3 className="field-label">{dict.sim.inFlight}</h3>
-      {step.inFlight.length === 0 ? (
-        <p className="mt-1 font-sans text-micro text-ink-faint">{dict.sim.noMessages}</p>
-      ) : (
-        <ul className="mt-1.5 max-h-32 overflow-y-auto font-mono text-micro tabular text-ink-soft">
-          {step.inFlight.slice(0, 12).map((flight) => (
-            <li key={flight.seq} className="py-0.5">
-              n{flight.message.from}→n{flight.message.to} {flight.message.type} t
-              {flight.message.term} @{flight.arrivesAt}
-            </li>
-          ))}
-        </ul>
       )}
     </div>
   )

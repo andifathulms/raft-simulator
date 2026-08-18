@@ -12,6 +12,7 @@
 import { useEffect } from 'react'
 import { Riwayat } from '@/components/timeline/Riwayat'
 import type { Dictionary } from '@/lib/i18n'
+import { eventCitation, eventFields } from '@/lib/timeline/eventDetail'
 import { describeEvent, type Trace } from '@/lib/sim/trace'
 
 interface Props {
@@ -164,18 +165,39 @@ export function Timeline({
         />
       </div>
 
-      {/* The exact event, in the vocabulary of the paper. Folded away because the
-          sentence above the cluster already says what happened — this is here for
-          when the sentence is not precise enough, which for some readers is always. */}
-      <details className="border border-ink-rule bg-stock-pale">
-        <summary className="cursor-pointer px-2.5 py-1.5 font-sans text-micro text-ink-faint hover:text-ink">
-          {dict.plain.technicalDetail}
-        </summary>
-        <p className="border-t border-ink-rule px-2.5 py-1.5 font-mono text-micro tabular text-ink-soft">
-          <span className="text-ink-faint">{dict.sim.event}: </span>
-          {current === undefined ? '—' : describeEvent(current.event)}
-        </p>
-      </details>
+      {/* The event as what it is — a discriminated union with fields — not one line
+          of prose. DESIGN-REWORK.md §3.3. A small fixed panel, not folded away:
+          the sentence above the cluster says what happened in plain language, this
+          says it in the vocabulary of the paper, and both are worth having on
+          screen at once. */}
+      <div className="border border-ink-rule bg-stock-pale px-2.5 py-1.5">
+        <p className="field-label">{dict.plain.technicalDetail}</p>
+        {current === undefined ? (
+          <p className="mt-1 font-mono text-micro tabular text-ink-faint">—</p>
+        ) : (
+          <>
+            <dl className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 font-mono text-micro tabular text-ink-soft">
+              {eventFields(current.event).map((field) => (
+                <div key={field.key} className="flex gap-1.5">
+                  <dt className="text-ink-faint">{dict.eventDetail[field.key]}:</dt>
+                  <dd>
+                    {(field.key === 'accepted' || field.key === 'duplicate') && field.value === 'yes'
+                      ? dict.eventDetail.yes
+                      : (field.key === 'accepted' || field.key === 'duplicate') && field.value === 'no'
+                        ? dict.eventDetail.no
+                        : field.value}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+            {eventCitation(current.event) !== null && (
+              <p className="mt-1 border-t border-ink-rule pt-1 font-mono text-micro text-ink-faint">
+                {eventCitation(current.event)}
+              </p>
+            )}
+          </>
+        )}
+      </div>
       {trace.truncated && (
         <p className="font-sans text-micro text-ink-faint">{dict.sim.truncated}</p>
       )}
