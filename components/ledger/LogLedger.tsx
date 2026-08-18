@@ -34,6 +34,12 @@ export function LogLedger({ step, dict }: Props) {
     if (seen.size > 1) disagreements.add(index)
   }
 
+  // DESIGN-REWORK.md §5: nextIndex and matchIndex are positions in this very table,
+  // not two arrays of integers to decode elsewhere. A crashed leader's belief is
+  // stale, not current, so it draws nothing — matching how the invariant checker
+  // already treats a crashed leader as not exercising leadership.
+  const leader = step.nodes.find((node) => node.role === 'leader' && step.crashed[node.id] !== true)
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full border-collapse font-mono text-data tabular">
@@ -84,6 +90,13 @@ export function LogLedger({ step, dict }: Props) {
                   // server's state. Drawing it as an empty row would read as
                   // divergence, which is the opposite of what happened.
                   compacted={index <= node.log.lastIncludedIndex}
+                  // A leader has no replication progress toward itself to show.
+                  matchBoundary={
+                    leader !== undefined && node.id !== leader.id && leader.matchIndex[node.id] === index
+                  }
+                  nextTry={
+                    leader !== undefined && node.id !== leader.id && leader.nextIndex[node.id] === index
+                  }
                   dict={dict}
                 />
               ))}
@@ -112,6 +125,8 @@ function Cell({
   committed,
   applied,
   compacted,
+  matchBoundary,
+  nextTry,
   dict,
 }: {
   entry: LogEntry | undefined
@@ -119,18 +134,38 @@ function Cell({
   committed: boolean
   applied: boolean
   compacted: boolean
+  /** DESIGN-REWORK.md §5 — the leader's matchIndex for this follower is this row. */
+  matchBoundary: boolean
+  /** The leader's nextIndex for this follower is this row — what it tries next. */
+  nextTry: boolean
   dict: Dictionary
 }) {
+  // Both markers are a leader's belief about a follower, drawn in the leader's own
+  // colour rather than a new one — a solid rule under the last entry it knows is
+  // safely replicated there, a dashed box around the one it is about to try.
+  const markerClass = [
+    matchBoundary ? 'border-b-2 border-b-leader' : '',
+    nextTry ? 'outline outline-2 outline-dashed outline-leader -outline-offset-2' : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
+  const markerNote = [
+    matchBoundary ? dict.ledger.matchIndex : '',
+    nextTry ? dict.ledger.nextIndex : '',
+  ]
+    .filter(Boolean)
+    .join(', ')
   if (entry === undefined && compacted) {
     // Snapshotted away. In a ledger the earlier pages are not blank — they have been
     // summarised and bound, so this is hatched rather than empty.
     return (
       <td
-        className="compacted border-b border-l border-ink-rule px-2 py-1"
-        title={`${dict.ledger.index} ${index} — ${dict.ledger.compacted}`}
+        className={['compacted border-b border-l border-ink-rule px-2 py-1', markerClass].join(' ')}
+        title={`${dict.ledger.index} ${index} — ${dict.ledger.compacted}${markerNote === '' ? '' : ` (${markerNote})`}`}
       >
         <span className="sr-only">
           {dict.ledger.index} {index}, {dict.ledger.compacted}
+          {markerNote === '' ? '' : `, ${markerNote}`}
         </span>
         {/* Height only: the hatch is the content. */}
         <span aria-hidden className="block h-4" />
@@ -138,18 +173,25 @@ function Cell({
     )
   }
   if (entry === undefined) {
-    // A missing row is what makes divergence read as a broken line.
-    return <td className="border-b border-l border-ink-rule px-2 py-1" />
+    // A missing row is what makes divergence read as a broken line — the markers
+    // still draw here: a leader may be probing or matched against a row a follower
+    // does not hold yet.
+    return (
+      <td className={['border-b border-l border-ink-rule px-2 py-1', markerClass].join(' ')}>
+        {markerNote !== '' && <span className="sr-only">{markerNote}</span>}
+      </td>
+    )
   }
   return (
     <td
       className={[
         'border-b border-l border-ink-rule px-2 py-1',
         committed ? 'bg-committed/10' : 'bg-stock-pale',
+        markerClass,
       ].join(' ')}
       title={`index ${index}, term ${entry.term}, ${
         committed ? dict.ledger.committed : dict.ledger.uncommitted
-      }`}
+      }${markerNote === '' ? '' : ` (${markerNote})`}`}
     >
       <span className="flex items-baseline gap-1.5">
         {/* Everything that distinguishes this cell — the term chip, the fill, the tick
@@ -157,7 +199,8 @@ function Cell({
         <span className="sr-only">
           {dict.ledger.index} {index}, term {entry.term},{' '}
           {committed ? dict.ledger.committed : dict.ledger.uncommitted}
-          {applied ? `, ${dict.ledger.applied}` : ''}:{' '}
+          {applied ? `, ${dict.ledger.applied}` : ''}
+          {markerNote === '' ? '' : `, ${markerNote}`}:{' '}
         </span>
         {/* Committed entries are visually settled; uncommitted ones are provisional,
             and say so with an outline rather than a colour. */}
@@ -214,6 +257,14 @@ function Legend({ dict }: { dict: Dictionary }) {
       <li className="flex items-center gap-1.5">
         <span className="compacted inline-block h-4 w-5 border border-ink-rule" />
         {dict.ledger.compacted}
+      </li>
+      <li className="flex items-center gap-1.5">
+        <span className="inline-block h-4 w-5 border-b-2 border-b-leader" />
+        {dict.ledger.matchIndex}
+      </li>
+      <li className="flex items-center gap-1.5">
+        <span className="inline-block h-4 w-5 outline outline-2 outline-dashed outline-leader -outline-offset-2" />
+        {dict.ledger.nextIndex}
       </li>
     </ul>
   )

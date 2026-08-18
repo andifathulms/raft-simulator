@@ -302,18 +302,17 @@ function NodeDetail({
           </span>
         )}
       </div>
+      {/* nextIndex and matchIndex used to be two arrays of integers here, decoded
+          against the ledger by hand. DESIGN-REWORK.md §5: they are positions in that
+          very table, so they are drawn on it now instead — a line under the last
+          entry the leader knows is replicated, a dashed box around the one it will
+          try next. */}
       <dl className="grid grid-cols-2 gap-x-4 gap-y-1">
         <Field label="currentTerm" value={node.currentTerm} />
         <Field label="votedFor" value={node.votedFor ?? '—'} />
         <Field label="commitIndex" value={node.commitIndex} />
         <Field label="lastApplied" value={node.lastApplied} />
         <Field label="configuration" value={describeConfiguration(configurationOf(node.log))} />
-        {node.role === 'leader' && (
-          <>
-            <Field label="nextIndex" value={node.nextIndex.join(' ')} />
-            <Field label="matchIndex" value={node.matchIndex.join(' ')} />
-          </>
-        )}
       </dl>
     </div>
   )

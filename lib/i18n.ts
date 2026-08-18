@@ -110,6 +110,9 @@ interface Dictionary {
     readonly empty: string
     readonly legend: string
     readonly compacted: string
+    /** DESIGN-REWORK.md §5 — matchIndex and nextIndex drawn on the ledger itself. */
+    readonly matchIndex: string
+    readonly nextIndex: string
   }
   readonly invariants: {
     readonly holding: string
@@ -291,6 +294,8 @@ const id: Dictionary = {
     uncommitted: 'Belum committed',
     empty: 'Log kosong',
     compacted: 'sudah di-snapshot (§7)',
+    matchIndex: 'matchIndex leader untuk node ini',
+    nextIndex: 'nextIndex leader untuk node ini — yang akan dicoba berikutnya',
     legend:
       'Baris disejajarkan pada index. Log yang menyimpang terbaca sebagai garis yang patah.',
   },
@@ -511,6 +516,8 @@ const en: Dictionary = {
     uncommitted: 'Uncommitted',
     empty: 'Empty log',
     compacted: 'snapshotted away (§7)',
+    matchIndex: "the leader's matchIndex for this node",
+    nextIndex: "the leader's nextIndex for this node — what it will try next",
     legend: 'Rows align on index. A divergent log reads as a broken line.',
   },
   invariants: {
