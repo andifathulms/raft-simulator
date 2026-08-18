@@ -19,6 +19,7 @@ import { AblationPanel, ModifiedBanner } from '@/components/ablation/AblationPan
 import { NodeRing } from '@/components/cluster/NodeRing'
 import { InvariantPanel } from '@/components/invariants/InvariantPanel'
 import { LogLedger } from '@/components/ledger/LogLedger'
+import { RunSummary } from '@/components/RunSummary'
 import { SimGuide } from '@/components/SimGuide'
 import { Timeline } from '@/components/timeline/Timeline'
 import { SCENARIOS, scenarioById } from '@/data/scenarios'
@@ -243,6 +244,17 @@ export function Simulator({ locale }: { locale: Locale }) {
               {narrateEvent(current.event, locale)}
             </p>
           </section>
+
+          {/* What just happened, then what the run has shown so far — one event,
+              then the accumulated picture. */}
+          <RunSummary
+            step={current}
+            elections={marks.elections.filter((s) => s <= step).length}
+            violations={trace.violations.filter((v) => v.stepIndex <= step)}
+            flags={share.flags}
+            dict={dict}
+            locale={locale}
+          />
 
           {/*
            * The workbench split. `26rem` is not an arbitrary number: it is sized to

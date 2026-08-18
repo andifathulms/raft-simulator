@@ -174,6 +174,16 @@ interface Dictionary {
     readonly retry: string
     readonly backToScenarios: string
   }
+  /** The always-visible run summary: what this run has shown, up to this step. */
+  readonly summary: {
+    readonly title: string
+    readonly term: string
+    readonly leader: string
+    readonly none: string
+    readonly elections: string
+    readonly committed: string
+    readonly violations: string
+  }
 }
 
 const id: Dictionary = {
@@ -408,6 +418,15 @@ const id: Dictionary = {
     retry: 'Coba lagi',
     backToScenarios: 'Ke daftar skenario',
   },
+  summary: {
+    title: 'Ringkasan',
+    term: 'Term',
+    leader: 'Leader',
+    none: '—',
+    elections: 'Pemilihan',
+    committed: 'Ter-commit',
+    violations: 'Pelanggaran',
+  },
 }
 
 const en: Dictionary = {
@@ -635,6 +654,15 @@ const en: Dictionary = {
       "This view failed to render. The simulation's state lives in this page's own link, so nothing is lost — try again, or go back to the scenario list.",
     retry: 'Try again',
     backToScenarios: 'Back to scenarios',
+  },
+  summary: {
+    title: 'Summary',
+    term: 'Term',
+    leader: 'Leader',
+    none: '—',
+    elections: 'Elections',
+    committed: 'Committed',
+    violations: 'Violations',
   },
 }
 
