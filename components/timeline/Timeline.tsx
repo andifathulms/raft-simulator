@@ -9,9 +9,10 @@
  * exists.
  */
 
-import { useEffect, useMemo } from 'react'
+import { useEffect } from 'react'
+import { Riwayat } from '@/components/timeline/Riwayat'
 import type { Dictionary } from '@/lib/i18n'
-import { describeEvent, runsOf, type Trace } from '@/lib/sim/trace'
+import { describeEvent, type Trace } from '@/lib/sim/trace'
 
 interface Props {
   readonly trace: Trace
@@ -48,7 +49,6 @@ export function Timeline({
 }: Props) {
   const last = trace.steps.length - 1
   const current = trace.steps[step]
-  const violationRuns = useMemo(() => runsOf(marks.violations), [marks.violations])
 
   useEffect(() => {
     if (!playing) return
@@ -72,7 +72,18 @@ export function Timeline({
 
   return (
     <section aria-label={dict.sim.timeline} className="flex flex-col gap-2">
-      <div className="relative">
+      {/*
+       * `Riwayat` is the picture; the range input is still the whole control. It sits
+       * on top, stretched over the drawing rather than beside it — DESIGN-REWORK.md
+       * §3.2: "What changes is that it sits on the history instead of standing in for
+       * it." Made visually transparent so only the drawing shows, but kept in the
+       * DOM exactly as before: same value, same onChange, same aria-valuetext, same
+       * tab order. A screen reader's experience of this control has not changed at
+       * all. Focus has to move to *something* visible, though — an invisible focus
+       * ring is no ring — so the group gets a ring instead of the input.
+       */}
+      <div className="group relative">
+        <Riwayat trace={trace} step={step} />
         <input
           type="range"
           min={0}
@@ -88,23 +99,12 @@ export function Timeline({
           aria-valuetext={`${dict.sim.step} ${step}, ${dict.sim.time} ${current?.time ?? 0}, ${
             current === undefined ? '' : describeEvent(current.event)
           }`}
-          className="w-full accent-leader"
+          className="absolute inset-0 h-full w-full cursor-pointer opacity-0 outline-none"
         />
-        {/* Violation marks sit above the track, in the one colour reserved for them.
-            A broken property stays broken, so these arrive in long unbroken runs —
-            collapsed into one span each rather than one per step. */}
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-1.5">
-          {violationRuns.map((span) => (
-            <span
-              key={span.from}
-              className="absolute top-0 h-1.5 bg-vermilion"
-              style={{
-                left: `${last === 0 ? 0 : (span.from / last) * 100}%`,
-                width: `${last === 0 ? 100 : Math.max(0.3, ((span.to - span.from) / last) * 100)}%`,
-              }}
-            />
-          ))}
-        </div>
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 hidden ring-2 ring-inset ring-leader group-focus-within:block"
+        />
       </div>
 
       <div className="flex flex-wrap items-center gap-1.5 font-sans text-label">

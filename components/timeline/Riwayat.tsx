@@ -53,11 +53,12 @@ export function Riwayat({ trace, step, onStep }: Props) {
   const violationRuns = runsOf(violationSteps(trace))
 
   const laneTop = (node: number) => TOP_MARGIN + TERM_BAND_HEIGHT + node * (LANE_HEIGHT + LANE_GAP)
+  // 1 SVG unit per step on x, 1 unit per pixel on y — `preserveAspectRatio="none"`
+  // lets it fill the container's width regardless of run length, since this is a
+  // schematic axis, not a drawing with a shape to preserve, while the vertical scale
+  // stays exact so the per-lane text stays whatever size it was drawn at.
   const height =
     TOP_MARGIN + TERM_BAND_HEIGHT + nodeCount * (LANE_HEIGHT + LANE_GAP) + VIOLATION_HEIGHT + BOTTOM_MARGIN
-  // 1 SVG unit per step. `preserveAspectRatio="none"` lets it fill the container's
-  // width regardless of run length, since this is a schematic axis, not a drawing
-  // with a shape to preserve.
   const width = Math.max(1, last + 1)
 
   const jump = (clientX: number, target: SVGSVGElement) => {
@@ -72,7 +73,7 @@ export function Riwayat({ trace, step, onStep }: Props) {
       viewBox={`0 0 ${width} ${height}`}
       preserveAspectRatio="none"
       width="100%"
-      height={height * 4}
+      height={height}
       aria-hidden
       className={onStep !== undefined ? 'cursor-pointer' : undefined}
       onClick={onStep !== undefined ? (event) => jump(event.clientX, event.currentTarget) : undefined}
