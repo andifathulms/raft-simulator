@@ -169,11 +169,13 @@ export function Timeline({
           <span className="font-semibold text-ink">{step}</span>/{last} · {dict.sim.time.toLowerCase()} {current?.time ?? 0}
         </p>
 
-        {summary}
+        {/* On a phone the figures live in the Safety tab; the dock keeps to the
+            controls so the cluster keeps the screen. */}
+        <div className="hidden sm:block">{summary}</div>
 
         {/* Jump to the next thing worth looking at. Scrubbing an event at a time is
             how you inspect a run; these are how you find the moment worth inspecting. */}
-        <div className="flex flex-wrap items-center gap-1 lg:ml-auto">
+        <div className="-mx-1 flex max-w-full flex-nowrap items-center gap-1 overflow-x-auto px-1 sm:flex-wrap lg:ml-auto">
           <span className="sr-only">{dict.sim.jumpTo}</span>
           <Jump label={dict.sim.nextElection} target={nextAfter(marks.elections, step)} go={go} />
           <Jump label={dict.sim.nextCommit} target={nextAfter(marks.commits, step)} go={go} />
@@ -225,7 +227,7 @@ function Jump({
         if (target !== null) go(target)
       }}
       className={[
-        'rounded-full border px-2.5 py-0.5 font-sans text-micro transition-colors disabled:cursor-not-allowed disabled:opacity-40',
+        'shrink-0 whitespace-nowrap rounded-full border px-2.5 py-0.5 font-sans text-micro transition-colors disabled:cursor-not-allowed disabled:opacity-40',
         // Vermilion only when there is a violation ahead to jump to.
         danger && target !== null
           ? 'border-vermilion text-vermilion hover:bg-vermilion hover:text-stock-pale'

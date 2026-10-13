@@ -47,7 +47,7 @@ body {
 
   /* Controls. `btn` is the quiet default; a page should have at most one `btn-strong`. */
   .btn {
-    @apply inline-flex items-center justify-center gap-1.5 rounded-control border border-ink-edge
+    @apply inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-control border border-ink-edge
            bg-stock-raised px-3 py-1.5 font-sans text-label font-medium text-ink transition-colors
            hover:bg-stock-deep disabled:cursor-not-allowed disabled:opacity-40
            disabled:hover:bg-stock-raised;

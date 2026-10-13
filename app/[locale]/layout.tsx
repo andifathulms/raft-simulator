@@ -36,9 +36,11 @@ export default function LocaleLayout({
       <a href="#main" className="skip-link font-sans text-sm">
         {locale === 'id' ? 'Lompat ke konten utama' : 'Skip to main content'}
       </a>
-      {/* Sticky, because the simulator is a long page and losing the way back to the
-          scenario library halfway down it is a small, avoidable annoyance. */}
-      <header className="sticky top-0 z-30 border-b border-ink-rule bg-stock-raised/90 backdrop-blur-md">
+      {/* Sticky from `sm` up, because losing the way back to the scenario library
+          halfway down a long page is a small, avoidable annoyance. Not on a phone:
+          there the nav wraps to several rows, and pinned above the workbench's
+          docked transport it would leave the cluster a sliver of the screen. */}
+      <header className="relative top-0 z-30 sm:sticky border-b border-ink-rule bg-stock-raised/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-[1440px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5 sm:px-6">
           <Link href={`/${locale}`} className="flex items-center gap-2.5">
             {/*
