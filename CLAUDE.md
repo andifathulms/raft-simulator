@@ -45,16 +45,19 @@ pnpm lint
 
 ```
 app/
-  [locale]/                 # id (default), en
-    simulasi/               # cluster + ledger + timeline
-    skenario/               # scenario library
-    ablasi/                 # ablation panel and explanations
+  [locale]/                 # en (default), id
+    simulasi/               # the workbench: one screen, transport docked
+    skenario/               # scenario library, in four tracks
+    ablasi/                 # "Rules Lab" — ablation panel and explanations
+    tentang/                # "How it's built" — the engineering account
 components/
   cluster/                  # node ring, message slips, partitions
   ledger/                   # log columns aligned on index — signature view
   invariants/               # five-property panel
-  timeline/                 # scrubber, stepping controls
+  timeline/                 # Riwayat history + the transport dock
   ablation/                 # rule toggles
+  workbench/                # toolbar, safety strip, hazard band, caption, dialogs
+  home/                     # the live hero cluster, the majority diagram
 lib/
   sim/                      # scheduler. Pure.
     clock.ts                # virtual clock, priority queue
@@ -113,6 +116,8 @@ tests/
 
 14. **`vermilion` is reserved for safety violations only.** Nothing else in the app is ever red — not errors, not partitions, not crashed nodes. See PRD §10.
 
+16. **Colour means state, never decoration.** Ink and stock carry every structural job, primary buttons included; the chromatic tokens appear only where they say something about Raft. Both themes are defined as hex in `tailwind.config.ts` (`LIGHT`, `DARK`) and nowhere else — components use the semantic tokens and never know which theme they are in.
+
 15. **A failing fuzz seed becomes a permanent regression test.** Never fix a fuzz failure without first committing the seed as a fixture.
 
 ## Working style
@@ -138,7 +143,9 @@ tests/
   complete Indonesian translation — every reader-facing string exists in both, including
   scenario titles and summaries. `LOCALES` is `['en', 'id']` and `DEFAULT_LOCALE` is `en`.
 - Scenario ids stable and readable: `split-vote`, `partition-stranded-leader`, `figure-8`, `log-divergence-repair`. They appear in shared URLs.
-- Tailwind utilities inline; semantic tokens in `tailwind.config.ts` — `stock`, `ink`, `follower`, `candidate`, `leader`, `committed`, `vermilion`. Never raw hex in components.
+- Tailwind utilities inline; semantic tokens in `tailwind.config.ts` — `stock`, `ink`, `follower`, `candidate`, `leader`, `committed`, `vermilion`. Never raw hex in components. The digit on a role fill uses `ROLE_INK` from `components/cluster/glyph.tsx`, not a hand-picked ink.
+- Named radii by role — `rounded-control`, `rounded-panel`, `rounded-stage` — and ledger cells stay square.
+- The URL hash is the share state. Never link to an in-page `#fragment` from the workbench: it replaces the hash and resets the run. Links that switch a rule off build `off=` through `flagCode()` in `lib/share.ts`.
 
 ## Testing rules
 
@@ -183,6 +190,18 @@ Every scenario is now hand-built. `initialNodes` is what made the last two possi
 `log-matching-break` and `double-candidacy` both hinge on a starting position that is
 legal but improbable, and both document the history Raft would have taken to reach it.
 Neither position may violate anything at step 0, and the tests assert that.
+
+**The October 2026 redesign** changed presentation only — nothing in `lib/raft`,
+`lib/sim` or `lib/invariants`. The workbench is one screen: toolbar with the five
+safety lights, stage · ledger · rules rail side by side, and the transport and
+`Riwayat` docked to the bottom edge. Modified Raft carries three marks — a hazard
+band, the struck light, and a watermark inside the stage. The palette was revised
+(PRD §10) and a dark theme added; the contrast table below now gates both. The home
+page opens on the real simulator replaying the clean election, the scenario library
+reads as four tracks (`lib/scenarios/tracks.ts`), the engineering account moved to
+`/tentang`, and ⌘K opens a palette. Two existing link bugs were fixed on the way:
+the rule cards' scenario links never switched the rule off, and the invariant
+panel's rule link reset the run by overwriting the share hash.
 
 **Accessibility.** Contrast was measured, not eyeballed. `ink-faint` was 2.63:1 —
 below AA, and the most-used secondary text colour in the app — and is now 5.08:1.

@@ -152,7 +152,7 @@ export function CommandPalette({
           if (event.target === event.currentTarget) setOpen(false)
         }}
         aria-label={dict.palette.open}
-        className="mt-[12vh] w-[calc(100vw-2rem)] max-w-xl overflow-hidden rounded-stage border border-ink-rule bg-stock-raised p-0 text-ink shadow-lift backdrop:bg-ink/40 backdrop:backdrop-blur-[2px]"
+        className="mt-[12vh] w-[calc(100vw-2rem)] max-w-xl overflow-hidden rounded-stage border border-ink-rule bg-stock-raised p-0 text-ink shadow-lift backdrop:bg-stock-deep/75 backdrop:backdrop-blur-[2px]"
       >
         <div className="flex items-center gap-3 border-b border-ink-rule px-4">
           <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden className="shrink-0 fill-none stroke-ink-faint" strokeWidth="1.75">

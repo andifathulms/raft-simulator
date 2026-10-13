@@ -169,13 +169,17 @@ const config: Config = {
   },
   plugins: [
     plugin(({ addBase }) => {
+      // Three states: the reader's system setting by default, or an explicit choice
+      // stored by the theme toggle and set as `data-theme` on <html> before first
+      // paint (see the inline script in app/layout.tsx). An explicit light choice
+      // beats a dark system, and an explicit dark choice beats a light one.
       addBase({
         ':root': { ...variables(LIGHT), 'color-scheme': 'light' },
+        '@media (prefers-color-scheme: dark)': {
+          ':root:not([data-theme="light"])': { ...variables(DARK), 'color-scheme': 'dark' },
+        },
+        ':root[data-theme="dark"]': { ...variables(DARK), 'color-scheme': 'dark' },
       })
-      // DARK is declared and measured here (see scripts/contrast.mjs) but not yet
-      // emitted: it is switched on as its own step so the light palette can land and
-      // be checked on its own first.
-      void DARK
     }),
   ],
 }

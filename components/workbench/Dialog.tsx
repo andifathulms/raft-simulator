@@ -37,7 +37,7 @@ export function Dialog({ open, onClose, title, closeLabel, children, wide = fals
       }}
       aria-label={title}
       className={[
-        'w-[calc(100vw-2rem)] rounded-stage border border-ink-rule bg-stock-raised p-0 text-ink shadow-lift backdrop:bg-ink/40 backdrop:backdrop-blur-[2px]',
+        'w-[calc(100vw-2rem)] rounded-stage border border-ink-rule bg-stock-raised p-0 text-ink shadow-lift backdrop:bg-stock-deep/75 backdrop:backdrop-blur-[2px]',
         wide ? 'max-w-3xl' : 'max-w-md',
       ].join(' ')}
     >

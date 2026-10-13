@@ -175,7 +175,7 @@ The material world is the **ledger book**: ruled columns, entries in numbered ro
 
 **Palette.** Ledger stock `#EEF1EC`, a cool account paper, with a raised surface `#FCFDFB` for panels and a deeper well `#E3E8E1` beneath — three clear levels, so a panel reads as an object on the bench. Ink `#141917` for rules, text, and column ruling. **Colour means state, never decoration:** ink and stock carry every structural job, buttons and emphasis included, and the chromatic tokens appear only where they say something about Raft. Node states carry the three colours that must be instantly distinguishable, spread across lightness so they separate even in greyscale: follower light slate `#A4AEA8`, candidate amber `#D49B2C`, leader deep blue `#2A5CA8`. Committed entries in ledger green `#2A7548`. **Vermilion `#B5341F` is reserved exclusively for safety violations** — the strongest colour on the page means "the algorithm is broken", which in ablation mode is the entire point. Nothing else is ever red.
 
-Both palettes live in `tailwind.config.ts` and nowhere else, and `scripts/contrast.mjs` gates every pair the app uses.
+A dark theme follows the reader's system setting, with a manual override in the header. It is not an inversion: each role fill is re-derived against the dark ground, and the node digit flips to dark ink because the fills become the light things. Both palettes live in `tailwind.config.ts` and nowhere else, and `scripts/contrast.mjs` gates every pair the app uses in both.
 
 *Revised October 2026.* The first edition's palette (`#E9EDE4` stock, `#6B7770` follower) put page and panel within a few percent of each other and capped the follower's digit at 3.41:1. The hues were kept; the values were not.
 

@@ -88,14 +88,29 @@ export const metadata: Metadata = {
   },
 }
 
-/** The app's own paper, so the Android status bar matches the page rather than the icon tile. */
+/** The app's own paper in each theme, so the status bar matches the page rather than the icon tile. */
 export const viewport: Viewport = {
-  themeColor: '#EEF1EC',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#EEF1EC' },
+    { media: '(prefers-color-scheme: dark)', color: '#0E1211' },
+  ],
 }
+
+/**
+ * Applies a stored theme choice before first paint. Must stay tiny and must not
+ * throw: it runs before React, on every page, including offline from the service
+ * worker's cache. The key matches THEME_KEY in components/ThemeToggle.tsx.
+ */
+const THEME_SCRIPT = `try{var t=localStorage.getItem('raft-simulator:theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t)}catch(e){}`
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${mono.variable} ${serif.variable} ${sans.variable}`}>
+    // `data-theme` is set by the pre-paint script before React hydrates, so the
+    // server's <html> and the client's legitimately differ on that one attribute.
+    <html lang="en" className={`${mono.variable} ${serif.variable} ${sans.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body className="bg-stock text-ink font-sans antialiased">
         {children}
         <ServiceWorker />

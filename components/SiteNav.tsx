@@ -11,6 +11,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { CommandPalette } from '@/components/CommandPalette'
+import { ThemeToggle } from '@/components/ThemeToggle'
 import { LOCALES, dictionary, type Locale } from '@/lib/i18n'
 
 interface Props {
@@ -42,8 +43,9 @@ export function SiteNav({ locale, links }: Props) {
         )
       })}
 
-      <span className="ml-2">
+      <span className="ml-2 flex items-center gap-1">
         <CommandPalette locale={locale} dict={dictionary(locale)} links={links} />
+        <ThemeToggle dict={dictionary(locale)} />
       </span>
 
       {/* The locale switch keeps you where you are rather than dropping you home:

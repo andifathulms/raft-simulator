@@ -209,6 +209,14 @@ interface Dictionary {
     readonly selectNode: string
     readonly lost: string
   }
+  /** The theme toggle in the nav. */
+  readonly theme: {
+    readonly label: string
+    readonly switchTo: string
+    readonly system: string
+    readonly light: string
+    readonly dark: string
+  }
   /** The ⌘K command palette. */
   readonly palette: {
     readonly open: string
@@ -513,6 +521,13 @@ const id: Dictionary = {
     runSoFar: 'Run sejauh ini',
     selectNode: 'Klik sebuah node untuk melihat state-nya, menjatuhkannya, atau mengisolasinya.',
     lost: 'hilang',
+  },
+  theme: {
+    label: 'Tema',
+    switchTo: 'Ganti ke',
+    system: 'ikuti sistem',
+    light: 'terang',
+    dark: 'gelap',
   },
   palette: {
     open: 'Buka palet perintah',
@@ -839,6 +854,13 @@ const en: Dictionary = {
     runSoFar: 'Run so far',
     selectNode: 'Click a node to see its state, crash it, or isolate it.',
     lost: 'lost',
+  },
+  theme: {
+    label: 'Theme',
+    switchTo: 'Switch to',
+    system: 'match system',
+    light: 'light',
+    dark: 'dark',
   },
   palette: {
     open: 'Open the command palette',
