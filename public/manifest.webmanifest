@@ -5,8 +5,8 @@
   "start_url": "/raft-simulator/",
   "scope": "/raft-simulator/",
   "display": "standalone",
-  "background_color": "#E9EDE4",
-  "theme_color": "#E9EDE4",
+  "background_color": "#EEF1EC",
+  "theme_color": "#EEF1EC",
   "icons": [
     {
       "src": "/raft-simulator/raft-icon-192.png",

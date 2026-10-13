@@ -3,21 +3,22 @@
 @tailwind utilities;
 
 /*
- * The material world is a ledger book: ruled columns, entries in numbered rows,
- * corrections struck and rewritten. Raft's central object is literally a log, so the
- * metaphor is structural rather than decorative.
+ * The material world is a ledger book laid on an instrument bench: ruled columns,
+ * entries in numbered rows, corrections struck and rewritten — and around it, the
+ * controls you operate it with. Raft's central object is literally a log, so the
+ * ledger metaphor is structural rather than decorative; the bench is what lets the
+ * panels around it read as objects you can pick up.
+ *
+ * Every colour is a CSS variable written by the plugin in tailwind.config.ts, from
+ * the palettes declared there. Nothing here names a hex value.
  */
 
-:root {
-  color-scheme: light;
-}
-
 html {
-  background-color: theme('colors.stock.DEFAULT');
+  background-color: rgb(var(--c-stock));
 }
 
 body {
-  color: theme('colors.ink.DEFAULT');
+  color: rgb(var(--c-ink));
   -webkit-font-smoothing: antialiased;
 }
 
@@ -29,33 +30,42 @@ body {
  * padding and a border colour. A panel is a panel; say so in one place.
  */
 @layer components {
-  /* A leaf of paper on the desk. */
+  /* A surface resting on the bench: one step lighter than the page, softened corners,
+     a shadow just deep enough to read as an object rather than an outline. */
   .card {
-    @apply border border-ink-rule bg-stock-raised shadow-card;
+    @apply rounded-panel border border-ink-rule bg-stock-raised shadow-card;
   }
 
   /* The heading strip a panel is filed under, in the register of a ledger tab. */
   .panel-head {
-    @apply flex items-baseline gap-2 border-b border-ink-rule px-3 py-2;
+    @apply flex items-baseline gap-2 border-b border-ink-rule px-4 py-2.5;
   }
 
   .panel-title {
-    @apply font-serif text-base leading-none text-ink;
+    @apply font-serif text-base font-semibold leading-none tracking-tight text-ink;
   }
 
   /* Controls. `btn` is the quiet default; a page should have at most one `btn-strong`. */
   .btn {
-    @apply inline-flex items-center justify-center gap-1.5 border border-ink-edge bg-stock-raised
-           px-3 py-1.5 font-sans text-label text-ink transition-colors hover:bg-stock-deep
-           disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-stock-raised;
+    @apply inline-flex items-center justify-center gap-1.5 rounded-control border border-ink-edge
+           bg-stock-raised px-3 py-1.5 font-sans text-label font-medium text-ink transition-colors
+           hover:bg-stock-deep disabled:cursor-not-allowed disabled:opacity-40
+           disabled:hover:bg-stock-raised;
   }
 
+  /* Ink, not a hue: colour is spoken for by the roles, so the primary action is the
+     darkest thing on the page instead of the most saturated. */
   .btn-strong {
-    @apply border-2 border-ink bg-ink px-4 py-2 text-stock-pale hover:bg-ink-soft;
+    @apply border-ink bg-ink px-4 py-2 font-semibold text-stock-pale hover:bg-ink-soft;
   }
 
   .btn-small {
     @apply px-2 py-1 text-micro;
+  }
+
+  /* A square transport key: step, rewind, jump. */
+  .btn-icon {
+    @apply h-8 w-8 px-0 py-0 text-label;
   }
 
   /* Vermilion on a control is only ever a route to, or out of, a broken run. */
@@ -65,12 +75,31 @@ body {
 
   /* A small standing label: a term, a role, a paper section. */
   .chip {
-    @apply inline-flex items-center gap-1 border border-ink-rule bg-stock-pale px-1.5 py-0.5
+    @apply inline-flex items-center gap-1 rounded-full border border-ink-rule bg-stock-pale px-2 py-0.5
            font-mono text-micro text-ink-soft;
   }
 
   .field-label {
-    @apply font-sans text-micro font-medium uppercase tracking-wide text-ink-faint;
+    @apply font-mono text-micro font-medium uppercase tracking-[0.08em] text-ink-faint;
+  }
+
+  /* Text inputs and selects share the control radius and the interactive border. */
+  .input {
+    @apply rounded-control border border-ink-edge bg-stock-pale px-2.5 py-1.5 font-sans text-label text-ink;
+  }
+
+  /* The cluster stage: a dotted bench the ring is drawn on, so the drawing reads as a
+     place rather than as a picture pasted on a panel. */
+  .stage {
+    @apply rounded-stage border border-ink-rule bg-stock-pale;
+    background-image: radial-gradient(rgb(var(--c-ink) / 0.07) 1px, transparent 1px);
+    background-size: 18px 18px;
+  }
+
+  /* A keyboard key, for shortcut hints. */
+  .kbd {
+    @apply inline-flex min-w-[1.25rem] items-center justify-center rounded border border-b-2 border-ink-edge
+           bg-stock-raised px-1 font-mono text-[0.6875rem] leading-4 text-ink-soft;
   }
 
   /* Prose written for someone who has not read the paper. */
@@ -89,7 +118,7 @@ body {
 /* The ruled grid the log ledger is set on. Horizontal rules make divergence between
    node columns read as a broken line. */
 .ruled > * + * {
-  border-top: 1px solid theme('colors.ink.rule');
+  border-top: 1px solid rgb(var(--c-ink-rule));
 }
 
 /* Election timeout: a thin depleting rule under a follower. The only ambient motion
@@ -135,8 +164,9 @@ body {
 }
 
 :focus-visible {
-  outline: 2px solid theme('colors.leader');
+  outline: 2px solid rgb(var(--c-leader));
   outline-offset: 2px;
+  border-radius: 2px;
 }
 
 /* SVG focus rings clip against the viewBox, so give the ring room to sit inside. */
@@ -169,8 +199,8 @@ svg :focus-visible {
 .compacted {
   background-image: repeating-linear-gradient(
     -45deg,
-    theme('colors.ink.rule') 0,
-    theme('colors.ink.rule') 1px,
+    rgb(var(--c-ink-rule)) 0,
+    rgb(var(--c-ink-rule)) 1px,
     transparent 1px,
     transparent 6px
   );
@@ -187,6 +217,6 @@ svg :focus-visible {
 .skip-link:focus {
   left: 0;
   padding: 0.5rem 1rem;
-  background-color: theme('colors.stock.pale');
-  border: 2px solid theme('colors.ink.DEFAULT');
+  background-color: rgb(var(--c-stock-pale));
+  border: 2px solid rgb(var(--c-ink));
 }

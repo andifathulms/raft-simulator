@@ -21,7 +21,7 @@ export function SiteNav({ locale, links }: Props) {
   const pathname = usePathname() ?? ''
 
   return (
-    <nav className="ml-auto flex items-center gap-1 font-sans text-label">
+    <nav className="ml-auto flex flex-wrap items-center gap-1 font-sans text-label">
       {links.map((link) => {
         const active = pathname === link.href || pathname.startsWith(`${link.href}/`)
         return (
@@ -30,10 +30,10 @@ export function SiteNav({ locale, links }: Props) {
             href={link.href}
             aria-current={active ? 'page' : undefined}
             className={[
-              'border-b-2 px-2 py-1 transition-colors',
+              'rounded-full px-3 py-1 transition-colors',
               active
-                ? 'border-ink font-semibold text-ink'
-                : 'border-transparent text-ink-soft hover:border-ink-rule hover:text-ink',
+                ? 'bg-ink font-semibold text-stock-pale'
+                : 'text-ink-soft hover:bg-stock-deep hover:text-ink',
             ].join(' ')}
           >
             {link.label}
@@ -43,7 +43,7 @@ export function SiteNav({ locale, links }: Props) {
 
       {/* The locale switch keeps you where you are rather than dropping you home:
           changing language is not a request to lose your place. */}
-      <span className="ml-3 flex items-center gap-1 border-l border-ink-rule pl-3 text-micro uppercase">
+      <span className="ml-2 flex items-center gap-1 border-l border-ink-rule pl-3 font-mono text-micro uppercase">
         {LOCALES.map((option) => {
           const rest = pathname.startsWith(`/${locale}`) ? pathname.slice(locale.length + 1) : ''
           return (

@@ -189,7 +189,7 @@ below AA, and the most-used secondary text colour in the app — and is now 5.08
 Interactive borders moved to a separate `ink-edge` token at 3.60:1, leaving `ink-rule`
 light for the ledger grid, which is decorative. The node-id digit follows its role
 fill and is set at large-text size, because dark ink on the follower slate tops out at
-3.41:1 and the palette is fixed by PRD §10. Skip link, per-locale `<html lang>`,
+3.41:1 under the first-edition palette (since revised — see PRD §10; it is now 7.79:1). Skip link, per-locale `<html lang>`,
 `sr-only` cell descriptions in the ledger, a polite live region for violations, and an
 `aria-valuetext` on the scrubber that says what happened rather than a step number.
 
@@ -199,36 +199,38 @@ drift from what `tailwind.config.ts` actually contains the way a hand-typed numb
 
 <!-- CONTRAST:GENERATED:START -->
 
-_Computed by `scripts/contrast.mjs` from the live `tailwind.config.ts` palette — never hand-edited._
+_Computed by `scripts/contrast.mjs` from the live `tailwind.config.ts` palettes, light and dark — never hand-edited._
 
-| Pair | Usage | Ratio | Needs | Result |
-|---|---|---|---|---|
-| `ink.DEFAULT` on `stock.DEFAULT` | body { color: ink }, globals.css | 13.43:1 | 4.5:1 | ✓ |
-| `ink.faint` on `stock.DEFAULT` | field-label / faint captions on the page background | 5.08:1 | 4.5:1 | ✓ |
-| `ink.faint` on `stock.deep` | field-label / faint captions on stock-deep | 4.56:1 | 4.5:1 | ✓ |
-| `ink.faint` on `stock.pale` | NodeDetail dt labels, NodeRing.tsx | 5.47:1 | 4.5:1 | ✓ |
-| `ink.faint` on `stock.raised` | faint captions inside a .card | 5.73:1 | 4.5:1 | ✓ |
-| `ink.soft` on `stock.DEFAULT` | text-ink-soft on the page background | 6.79:1 | 4.5:1 | ✓ |
-| `ink.soft` on `stock.deep` | text-ink-soft on stock-deep | 6.10:1 | 4.5:1 | ✓ |
-| `ink.soft` on `stock.pale` | text-ink-soft inside a chip / node detail panel | 7.32:1 | 4.5:1 | ✓ |
-| `ink.soft` on `stock.raised` | text-ink-soft inside a .card | 7.67:1 | 4.5:1 | ✓ |
-| `ink.edge` on `stock.DEFAULT` | .btn border on the page background | 3.60:1 | 3:1 | ✓ |
-| `ink.edge` on `stock.deep` | .btn border on stock-deep | 3.23:1 | 3:1 | ✓ |
-| `ink.edge` on `stock.pale` | .btn border on stock-pale | 3.88:1 | 3:1 | ✓ |
-| `ink.edge` on `stock.raised` | .btn border, bg-stock-raised — the common case | 4.07:1 | 3:1 | ✓ |
-| `ink.DEFAULT` on `follower` | node-id digit on the follower fill, NodeRing.tsx | 3.41:1 | 3:1 | ✓ |
-| `ink.DEFAULT` on `candidate` | node-id digit on the candidate fill, NodeRing.tsx | 4.93:1 | 3:1 | ✓ |
-| `stock.pale` on `leader` | node-id digit on the leader fill, NodeRing.tsx | 7.12:1 | 3:1 | ✓ |
-| `committed` on `stock.pale` | text-committed term chip, MajorityDiagram.tsx / LogLedger.tsx | 5.60:1 | 4.5:1 | ✓ |
-| `committed` on `stock.raised` | text-committed inside a .card, AblationPanel.tsx | 5.87:1 | 4.5:1 | ✓ |
-| `committed` on `stock.DEFAULT` | text-committed on the page background | 5.20:1 | 4.5:1 | ✓ |
-| `committed` on `stock.raised` | border-committed / bg-committed swatch, non-text | 5.87:1 | 3:1 | ✓ |
-| `stock.pale` on `committed` | text-stock-pale on bg-committed indicator, InvariantPanel.tsx | 5.60:1 | 4.5:1 | ✓ |
-| `vermilion` on `stock.pale` | text-vermilion, InvariantPanel.tsx | 5.46:1 | 4.5:1 | ✓ |
-| `vermilion` on `stock.raised` | text-vermilion inside the error box, Simulator.tsx | 5.72:1 | 4.5:1 | ✓ |
-| `vermilion` on `stock.DEFAULT` | text-vermilion, home page route card | 5.07:1 | 4.5:1 | ✓ |
-| `vermilion` on `stock.raised` | border-vermilion / bg-vermilion, non-text | 5.72:1 | 3:1 | ✓ |
-| `stock.pale` on `vermilion` | text-stock-pale on bg-vermilion, AblationPanel.tsx / .btn-violation | 5.46:1 | 4.5:1 | ✓ |
+| Pair | Usage | Light | Dark | Needs | Result |
+|---|---|---|---|---|---|
+| `ink.DEFAULT` on `stock.DEFAULT` | body { color: ink }, globals.css | 15.60:1 | 15.80:1 | 4.5:1 | ✓ |
+| `ink.faint` on `stock.DEFAULT` | field-label / faint captions on the page background | 5.47:1 | 6.42:1 | 4.5:1 | ✓ |
+| `ink.faint` on `stock.deep` | field-label / faint captions on stock-deep | 5.02:1 | 6.64:1 | 4.5:1 | ✓ |
+| `ink.faint` on `stock.pale` | NodeDetail dt labels, NodeRing.tsx | 5.84:1 | 6.16:1 | 4.5:1 | ✓ |
+| `ink.faint` on `stock.raised` | faint captions inside a .card | 6.11:1 | 5.93:1 | 4.5:1 | ✓ |
+| `ink.soft` on `stock.DEFAULT` | text-ink-soft on the page background | 7.80:1 | 9.79:1 | 4.5:1 | ✓ |
+| `ink.soft` on `stock.deep` | text-ink-soft on stock-deep | 7.15:1 | 10.14:1 | 4.5:1 | ✓ |
+| `ink.soft` on `stock.pale` | text-ink-soft inside a chip / node detail panel | 8.32:1 | 9.41:1 | 4.5:1 | ✓ |
+| `ink.soft` on `stock.raised` | text-ink-soft inside a .card | 8.71:1 | 9.05:1 | 4.5:1 | ✓ |
+| `ink.edge` on `stock.DEFAULT` | .btn border on the page background | 3.46:1 | 4.04:1 | 3:1 | ✓ |
+| `ink.edge` on `stock.deep` | .btn border on stock-deep | 3.17:1 | 4.18:1 | 3:1 | ✓ |
+| `ink.edge` on `stock.pale` | .btn border on stock-pale | 3.69:1 | 3.88:1 | 3:1 | ✓ |
+| `ink.edge` on `stock.raised` | .btn border, bg-stock-raised — the common case | 3.86:1 | 3.73:1 | 3:1 | ✓ |
+| `ink.role` on `follower` | node-id digit on the follower fill, NodeRing.tsx | 7.79:1 | 5.19:1 | 3:1 | ✓ |
+| `ink.role` on `candidate` | node-id digit on the candidate fill, NodeRing.tsx | 7.22:1 | 8.72:1 | 3:1 | ✓ |
+| `stock.pale` on `leader` | node-id digit on the leader fill, NodeRing.tsx | 6.15:1 | 6.47:1 | 3:1 | ✓ |
+| `leader` on `stock.pale` | leader fill / matchIndex rule on the stage, NodeRing.tsx / LogLedger.tsx | 6.15:1 | 6.47:1 | 3:1 | ✓ |
+| `leader` on `stock.raised` | text-leader link and focus colour inside a .card | 6.44:1 | 6.23:1 | 4.5:1 | ✓ |
+| `committed` on `stock.pale` | text-committed term chip, MajorityDiagram.tsx / LogLedger.tsx | 5.26:1 | 7.06:1 | 4.5:1 | ✓ |
+| `committed` on `stock.raised` | text-committed inside a .card, AblationPanel.tsx | 5.51:1 | 6.79:1 | 4.5:1 | ✓ |
+| `committed` on `stock.DEFAULT` | text-committed on the page background | 4.93:1 | 7.35:1 | 4.5:1 | ✓ |
+| `committed` on `stock.raised` | border-committed / bg-committed swatch, non-text | 5.51:1 | 6.79:1 | 3:1 | ✓ |
+| `stock.pale` on `committed` | text-stock-pale on bg-committed indicator, InvariantPanel.tsx | 5.26:1 | 7.06:1 | 4.5:1 | ✓ |
+| `vermilion` on `stock.pale` | text-vermilion, InvariantPanel.tsx | 5.65:1 | 5.85:1 | 4.5:1 | ✓ |
+| `vermilion` on `stock.raised` | text-vermilion inside the error box, Simulator.tsx | 5.92:1 | 5.62:1 | 4.5:1 | ✓ |
+| `vermilion` on `stock.DEFAULT` | text-vermilion, home page route card | 5.30:1 | 6.09:1 | 4.5:1 | ✓ |
+| `vermilion` on `stock.raised` | border-vermilion / bg-vermilion, non-text | 5.92:1 | 5.62:1 | 3:1 | ✓ |
+| `stock.pale` on `vermilion` | text-stock-pale on bg-vermilion, AblationPanel.tsx / .btn-violation | 5.65:1 | 5.85:1 | 4.5:1 | ✓ |
 
 <!-- CONTRAST:GENERATED:END -->
 

@@ -18,7 +18,10 @@ export function evaluate(
   pairs: readonly ContrastPair[],
   colors: Readonly<Record<string, string>>,
 ): ContrastResult[]
-export function extractColorsBlock(source: string): string
+/** `marker` names the palette block, `'const LIGHT'` (the default) or `'const DARK'`. */
+export function extractColorsBlock(source: string, marker?: string): string
+/** Both palettes from tailwind.config.ts, keyed by theme. */
+export function parsePalettes(source: string): Record<'light' | 'dark', Record<string, string>>
 export function parseColors(block: string): Record<string, string>
 export function contrastRatio(hexA: string, hexB: string): number
 export function relativeLuminance(hexColor: string): number

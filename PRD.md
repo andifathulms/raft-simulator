@@ -173,9 +173,13 @@ Correctness matters more here than in the game projects, because this teaches. *
 
 The material world is the **ledger book**: ruled columns, entries in numbered rows, corrections struck and rewritten, a clerk's hand. Raft's central object is literally a log, and the log ledger is the central view — so the metaphor is structural rather than decorative.
 
-**Palette.** Ledger stock `#E9EDE4`, a pale blue-green account paper. Ink `#1E2321` for rules, text, and column ruling. Node states carry the three colours that must be instantly distinguishable: follower slate `#6B7770`, candidate amber `#B8862F`, leader deep blue `#2C5578`. Committed entries in ledger green `#3E6B4A`. **Vermilion `#B03A2E` is reserved exclusively for safety violations** — the strongest colour on the page means "the algorithm is broken", which in ablation mode is the entire point. Nothing else is ever red.
+**Palette.** Ledger stock `#EEF1EC`, a cool account paper, with a raised surface `#FCFDFB` for panels and a deeper well `#E3E8E1` beneath — three clear levels, so a panel reads as an object on the bench. Ink `#141917` for rules, text, and column ruling. **Colour means state, never decoration:** ink and stock carry every structural job, buttons and emphasis included, and the chromatic tokens appear only where they say something about Raft. Node states carry the three colours that must be instantly distinguishable, spread across lightness so they separate even in greyscale: follower light slate `#A4AEA8`, candidate amber `#D49B2C`, leader deep blue `#2A5CA8`. Committed entries in ledger green `#2A7548`. **Vermilion `#B5341F` is reserved exclusively for safety violations** — the strongest colour on the page means "the algorithm is broken", which in ablation mode is the entire point. Nothing else is ever red.
 
-**Type.** The content is numeric — terms, indices, node ids — so **JetBrains Mono** for log entries, terms, and indices, with tabular figures, set in genuine ruled columns. **Source Serif 4** for prose and headings, in the register of a bound ledger. **IBM Plex Sans** for controls and labels.
+Both palettes live in `tailwind.config.ts` and nowhere else, and `scripts/contrast.mjs` gates every pair the app uses.
+
+*Revised October 2026.* The first edition's palette (`#E9EDE4` stock, `#6B7770` follower) put page and panel within a few percent of each other and capped the follower's digit at 3.41:1. The hues were kept; the values were not.
+
+**Type.** The content is numeric — terms, indices, node ids — so **JetBrains Mono** for log entries, terms, and indices, with tabular figures, set in genuine ruled columns. **Source Serif 4** for headings and narration, in the register of a bound ledger, set large and tight at display sizes using its optical-size axis. **Instrument Sans** for controls and labels — narrower than a humanist sans, so a toolbar holds at 13px.
 
 **Structure.** Ruled columns with visible horizontal rules on the index grid, so alignment across nodes is unmissable — divergence should read as a broken line, the way a mismatched ledger does. Generous gutters between node columns.
 

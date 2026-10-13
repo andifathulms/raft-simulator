@@ -23,14 +23,14 @@ const START_MARKER = '<!-- CONTRAST:GENERATED:START -->'
 const END_MARKER = '<!-- CONTRAST:GENERATED:END -->'
 
 // ---------------------------------------------------------------------------
-// Read the palette out of tailwind.config.ts. Brace-matched, not a fixed-format
-// regex, so reordering or reformatting the `colors` block doesn't silently start
-// reading nothing.
+// Read the palettes out of tailwind.config.ts — `const LIGHT` and `const DARK`, the
+// only place either theme's hex values are written. Brace-matched, not a fixed-format
+// regex, so reordering or reformatting a block doesn't silently start reading nothing.
 // ---------------------------------------------------------------------------
 
-function extractColorsBlock(source) {
-  const anchor = source.indexOf('colors:')
-  if (anchor === -1) throw new Error('tailwind.config.ts: no `colors:` key found')
+function extractColorsBlock(source, marker = 'const LIGHT') {
+  const anchor = source.indexOf(marker)
+  if (anchor === -1) throw new Error(`tailwind.config.ts: no \`${marker}\` block found`)
   const open = source.indexOf('{', anchor)
   let depth = 0
   for (let i = open; i < source.length; i += 1) {
@@ -40,7 +40,7 @@ function extractColorsBlock(source) {
       if (depth === 0) return source.slice(open + 1, i)
     }
   }
-  throw new Error('tailwind.config.ts: unbalanced braces in `colors:` block')
+  throw new Error(`tailwind.config.ts: unbalanced braces in \`${marker}\` block`)
 }
 
 /** Flat and one-level-nested `key: '#hex'` entries, as `stock.pale` / `follower` etc. */
@@ -108,9 +108,13 @@ const PAIRS = [
   { fg: 'ink.edge', bg: 'stock.pale', kind: 'large', note: '.btn border on stock-pale' },
   { fg: 'ink.edge', bg: 'stock.raised', kind: 'large', note: '.btn border, bg-stock-raised — the common case' },
   // The node-id digit: large text (19px bold) by construction, so 3:1 applies.
-  { fg: 'ink.DEFAULT', bg: 'follower', kind: 'large', note: 'node-id digit on the follower fill, NodeRing.tsx' },
-  { fg: 'ink.DEFAULT', bg: 'candidate', kind: 'large', note: 'node-id digit on the candidate fill, NodeRing.tsx' },
+  { fg: 'ink.role', bg: 'follower', kind: 'large', note: 'node-id digit on the follower fill, NodeRing.tsx' },
+  { fg: 'ink.role', bg: 'candidate', kind: 'large', note: 'node-id digit on the candidate fill, NodeRing.tsx' },
   { fg: 'stock.pale', bg: 'leader', kind: 'large', note: 'node-id digit on the leader fill, NodeRing.tsx' },
+  // The role fills themselves against the stage they are drawn on — non-text, 3:1.
+  // Every shape also carries an ink stroke, so this is the fill's own visibility.
+  { fg: 'leader', bg: 'stock.pale', kind: 'large', note: 'leader fill / matchIndex rule on the stage, NodeRing.tsx / LogLedger.tsx' },
+  { fg: 'leader', bg: 'stock.raised', kind: 'text', note: 'text-leader link and focus colour inside a .card' },
   // committed — as text, and as a fill/border.
   { fg: 'committed', bg: 'stock.pale', kind: 'text', note: 'text-committed term chip, MajorityDiagram.tsx / LogLedger.tsx' },
   { fg: 'committed', bg: 'stock.raised', kind: 'text', note: 'text-committed inside a .card, AblationPanel.tsx' },
@@ -145,32 +149,53 @@ export { PAIRS, extractColorsBlock, parseColors, contrastRatio, relativeLuminanc
 
 // ---------------------------------------------------------------------------
 
+const THEMES = [
+  { name: 'light', marker: 'const LIGHT' },
+  { name: 'dark', marker: 'const DARK' },
+]
+
+/** Both palettes, keyed by theme name. What the tests and `main` both read. */
+export function parsePalettes(source) {
+  return Object.fromEntries(
+    THEMES.map((theme) => [theme.name, parseColors(extractColorsBlock(source, theme.marker))]),
+  )
+}
+
 async function main() {
   const configSource = await readFile(CONFIG_PATH, 'utf8')
-  const colors = parseColors(extractColorsBlock(configSource))
-  const results = evaluate(PAIRS, colors)
-  const failures = results.filter((r) => !r.pass)
+  const palettes = parsePalettes(configSource)
+  const byTheme = Object.fromEntries(
+    THEMES.map((theme) => [theme.name, evaluate(PAIRS, palettes[theme.name])]),
+  )
+  const failures = THEMES.flatMap((theme) =>
+    byTheme[theme.name].filter((r) => !r.pass).map((r) => ({ ...r, theme: theme.name })),
+  )
 
-  for (const r of results) {
-    const status = r.pass ? 'PASS' : 'FAIL'
-    console.log(
-      `${status}  ${r.ratio.toFixed(2)}:1  (need ${r.threshold}:1)  ${r.fg} on ${r.bg}  — ${r.note}`,
-    )
+  for (const theme of THEMES) {
+    console.log(`\n— ${theme.name}`)
+    for (const r of byTheme[theme.name]) {
+      const status = r.pass ? 'PASS' : 'FAIL'
+      console.log(
+        `${status}  ${r.ratio.toFixed(2)}:1  (need ${r.threshold}:1)  ${r.fg} on ${r.bg}  — ${r.note}`,
+      )
+    }
   }
 
+  const cell = (r) => `${r.ratio.toFixed(2)}:1${r.pass ? '' : ' ✗'}`
   const table = [
-    '| Pair | Usage | Ratio | Needs | Result |',
-    '|---|---|---|---|---|',
-    ...results.map(
-      (r) =>
-        `| \`${r.fg}\` on \`${r.bg}\` | ${r.note} | ${r.ratio.toFixed(2)}:1 | ${r.threshold}:1 | ${r.pass ? '✓' : '✗ FAIL'} |`,
-    ),
+    '| Pair | Usage | Light | Dark | Needs | Result |',
+    '|---|---|---|---|---|---|',
+    ...byTheme.light.map((light, index) => {
+      const dark = byTheme.dark[index]
+      const pass = light.pass && dark.pass
+      return `| \`${light.fg}\` on \`${light.bg}\` | ${light.note} | ${cell(light)} | ${cell(dark)} | ${light.threshold}:1 | ${pass ? '✓' : '✗ FAIL'} |`
+    }),
   ].join('\n')
 
   const block = [
     START_MARKER,
     '',
-    '_Computed by `scripts/contrast.mjs` from the live `tailwind.config.ts` palette — never hand-edited._',
+    '_Computed by `scripts/contrast.mjs` from the live `tailwind.config.ts` palettes, light and dark — never hand-edited._',
     '',
     table,
     '',

@@ -37,8 +37,8 @@ export default function LocaleLayout({
       </a>
       {/* Sticky, because the simulator is a long page and losing the way back to the
           scenario library halfway down it is a small, avoidable annoyance. */}
-      <header className="sticky top-0 z-30 border-b-2 border-ink bg-stock/95 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5 sm:px-6">
+      <header className="sticky top-0 z-30 border-b border-ink-rule bg-stock-raised/90 backdrop-blur-md">
+        <div className="mx-auto flex max-w-[1440px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5 sm:px-6">
           <Link href={`/${locale}`} className="flex items-center gap-2.5">
             {/*
              * The small-size form of the mark: three nodes, no orbit ring. The brand
@@ -55,7 +55,9 @@ export default function LocaleLayout({
               height={26}
               className="shrink-0"
             />
-            <span className="font-serif text-xl leading-none">Raft Simulator</span>
+            <span className="font-serif text-xl font-semibold leading-none tracking-tight">
+              Raft Simulator
+            </span>
             <span className="hidden font-sans text-micro text-ink-faint sm:inline">
               {dict.nav.tagline}
             </span>
@@ -63,14 +65,14 @@ export default function LocaleLayout({
           <SiteNav locale={locale} links={links} />
         </div>
       </header>
-      <main id="main" className="mx-auto max-w-[1400px] px-4 py-8 sm:px-6">
+      <main id="main" className="mx-auto max-w-[1440px] px-4 py-8 sm:px-6">
         {children}
       </main>
       {/* One seam. The citation and the maker's mark sit at opposite ends of the same
           bar rather than in stacked sections with a rule between them — a personal
           credit is not a second legal notice and should not be filed as one. */}
       <footer className="mt-16 border-t border-ink-rule">
-        <div className="mx-auto flex max-w-[1400px] flex-col gap-6 px-4 py-8 sm:flex-row sm:items-end sm:justify-between sm:gap-10 sm:px-6">
+        <div className="mx-auto flex max-w-[1440px] flex-col gap-6 px-4 py-8 sm:flex-row sm:items-end sm:justify-between sm:gap-10 sm:px-6">
           <p className="max-w-3xl font-sans text-micro leading-relaxed text-ink-faint">
             {locale === 'id' ? 'Sumber normatif' : 'Normative source'}:{' '}
             <a

@@ -1,12 +1,13 @@
 import type { Metadata, Viewport } from 'next'
-import { IBM_Plex_Sans, JetBrains_Mono, Source_Serif_4 } from 'next/font/google'
+import { Instrument_Sans, JetBrains_Mono, Source_Serif_4 } from 'next/font/google'
 import { ServiceWorker } from '@/components/ServiceWorker'
 import './globals.css'
 
 /**
  * The content is numeric — terms, indices, node ids — so the log ledger is set in
- * JetBrains Mono with tabular figures. Source Serif 4 carries prose and headings, in
- * the register of a bound ledger; IBM Plex Sans carries controls and labels.
+ * JetBrains Mono with tabular figures. Source Serif 4 carries headings and the
+ * narration, in the register of a bound ledger. Instrument Sans carries controls and
+ * labels: narrower than a humanist sans, so a toolbar fits at 13px without crowding.
  */
 const mono = JetBrains_Mono({
   subsets: ['latin'],
@@ -16,13 +17,15 @@ const mono = JetBrains_Mono({
 
 const serif = Source_Serif_4({
   subsets: ['latin'],
+  // Optical sizing is what lets the same family set a 60px headline tight and a
+  // 15px caption open — the display cut and the text cut are one variable font.
+  axes: ['opsz'],
   variable: '--font-serif',
   display: 'swap',
 })
 
-const sans = IBM_Plex_Sans({
+const sans = Instrument_Sans({
   subsets: ['latin'],
-  weight: ['400', '500', '600'],
   variable: '--font-sans',
   display: 'swap',
 })
@@ -87,7 +90,7 @@ export const metadata: Metadata = {
 
 /** The app's own paper, so the Android status bar matches the page rather than the icon tile. */
 export const viewport: Viewport = {
-  themeColor: '#E9EDE4',
+  themeColor: '#EEF1EC',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
