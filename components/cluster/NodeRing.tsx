@@ -21,6 +21,8 @@ interface Props {
   readonly onNodeAction?: (node: number, action: 'crash' | 'restart' | 'isolate') => void
   readonly selected: number | null
   readonly onSelect: (node: number | null) => void
+  /** A picture only — the home page's live hero. No controls, nothing focusable. */
+  readonly bare?: boolean
 }
 
 const SIZE = 420
@@ -104,7 +106,7 @@ function slipLabel(flight: InFlight): string {
   }
 }
 
-export function NodeRing({ step, dict, onNodeAction, selected, onSelect }: Props) {
+export function NodeRing({ step, dict, onNodeAction, selected, onSelect, bare = false }: Props) {
   const count = step.nodes.length
   const partitions = new Set(step.network.partitionOf)
   const split = partitions.size > 1
@@ -217,18 +219,22 @@ export function NodeRing({ step, dict, onNodeAction, selected, onSelect }: Props
             <g
               key={node.id}
               transform={`translate(${x} ${y})`}
-              onClick={() => onSelect(isSelected ? null : node.id)}
-              className="cursor-pointer"
-              tabIndex={0}
-              role="button"
-              aria-pressed={isSelected}
-              aria-label={`Node ${node.id}, ${node.role}, term ${node.currentTerm}`}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                  event.preventDefault()
-                  onSelect(isSelected ? null : node.id)
-                }
-              }}
+              {...(bare
+                ? {}
+                : {
+                    onClick: () => onSelect(isSelected ? null : node.id),
+                    className: 'cursor-pointer',
+                    tabIndex: 0,
+                    role: 'button',
+                    'aria-pressed': isSelected,
+                    'aria-label': `Node ${node.id}, ${node.role}, term ${node.currentTerm}`,
+                    onKeyDown: (event: React.KeyboardEvent) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault()
+                        onSelect(isSelected ? null : node.id)
+                      }
+                    },
+                  })}
             >
               {isSelected && (
                 <circle r="37" fill="none" className="stroke-ink" strokeWidth="1.25" strokeDasharray="2 3" />
@@ -310,16 +316,20 @@ export function NodeRing({ step, dict, onNodeAction, selected, onSelect }: Props
         })}
       </svg>
 
-      <p className="text-center font-mono text-micro tabular text-ink-soft">
-        {dict.sim.configuration}: {describeConfiguration(configuration)}
-      </p>
+      {!bare && (
+        <>
+          <p className="text-center font-mono text-micro tabular text-ink-soft">
+            {dict.sim.configuration}: {describeConfiguration(configuration)}
+          </p>
 
-      <NodeDetail
-        step={step}
-        node={selected === null ? null : (step.nodes[selected] ?? null)}
-        dict={dict}
-        onNodeAction={onNodeAction}
-      />
+          <NodeDetail
+            step={step}
+            node={selected === null ? null : (step.nodes[selected] ?? null)}
+            dict={dict}
+            onNodeAction={onNodeAction}
+          />
+        </>
+      )}
     </div>
   )
 }

@@ -25,8 +25,11 @@ export default function AblationPage({ params }: { params: { locale: string } })
   return (
     <div className="flex flex-col gap-8">
       <header className="max-w-3xl">
-        <h1 className="font-serif text-3xl sm:text-4xl">{dict.nav.ablation}</h1>
-        <p className="mt-3 max-w-prose font-serif text-lede">{dict.plain.ablationHelp}</p>
+        {/* "Rules Lab" is the name a newcomer reads; "ablation" is the term the paper
+            and the code use, kept as the eyebrow so neither reader is lost. */}
+        <p className="field-label">{locale === 'id' ? 'Ablasi' : 'Ablation'}</p>
+        <h1 className="mt-3 font-serif text-headline font-semibold">{dict.nav.ablation}</h1>
+        <p className="mt-4 max-w-prose font-serif text-lede">{dict.plain.ablationHelp}</p>
         <p className="mt-3 max-w-prose plain">{dict.ablation.lede}</p>
         <p className="mt-4 max-w-prose font-sans text-micro leading-relaxed text-ink-faint">
           {locale === 'id'
@@ -48,7 +51,7 @@ export default function AblationPage({ params }: { params: { locale: string } })
 
         <aside className="flex flex-col gap-6">
           <section className="card p-4">
-            <h2 className="border-b border-ink-rule pb-2 font-serif text-lg">
+            <h2 className="border-b border-ink-rule pb-2 font-serif text-panel font-semibold">
               {locale === 'id' ? 'Properti yang dijaga' : 'Properties defended'}
             </h2>
             <ul className="ruled mt-1">
@@ -56,7 +59,7 @@ export default function AblationPage({ params }: { params: { locale: string } })
                   deduplicated and each names the rules that stand behind it. */}
               {defended.map(({ property, flags }) => (
                 <li key={property} className="py-3">
-                  <p className="font-mono text-data font-bold">
+                  <p className="font-sans text-label font-semibold">
                     {dict.invariants.names[property]}
                   </p>
                   <p className="mt-1 font-sans text-label leading-relaxed text-ink">
@@ -74,7 +77,7 @@ export default function AblationPage({ params }: { params: { locale: string } })
           </section>
 
           <section className="card p-4">
-            <h2 className="font-serif text-lg">
+            <h2 className="font-serif text-panel font-semibold">
               {locale === 'id' ? 'Kenapa ablasi' : 'Why ablation'}
             </h2>
             <p className="mt-2 font-sans text-label leading-relaxed text-ink-soft">

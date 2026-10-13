@@ -10,7 +10,8 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LOCALES, type Locale } from '@/lib/i18n'
+import { CommandPalette } from '@/components/CommandPalette'
+import { LOCALES, dictionary, type Locale } from '@/lib/i18n'
 
 interface Props {
   readonly locale: Locale
@@ -40,6 +41,10 @@ export function SiteNav({ locale, links }: Props) {
           </Link>
         )
       })}
+
+      <span className="ml-2">
+        <CommandPalette locale={locale} dict={dictionary(locale)} links={links} />
+      </span>
 
       {/* The locale switch keeps you where you are rather than dropping you home:
           changing language is not a request to lose your place. */}

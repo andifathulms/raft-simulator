@@ -27,6 +27,7 @@ export default function LocaleLayout({
     { href: `/${locale}/simulasi`, label: dict.nav.simulation },
     { href: `/${locale}/skenario`, label: dict.nav.scenarios },
     { href: `/${locale}/ablasi`, label: dict.nav.ablation },
+    { href: `/${locale}/tentang`, label: dict.nav.about },
   ]
 
   return (

@@ -19,6 +19,8 @@ interface Dictionary {
     readonly simulation: string
     readonly scenarios: string
     readonly ablation: string
+    /** The new engineering page, /tentang. */
+    readonly about: string
     readonly tagline: string
   }
   /**
@@ -207,15 +209,46 @@ interface Dictionary {
     readonly selectNode: string
     readonly lost: string
   }
+  /** The ⌘K command palette. */
+  readonly palette: {
+    readonly open: string
+    readonly placeholder: string
+    readonly pages: string
+    readonly scenarios: string
+    readonly breakRule: string
+    readonly empty: string
+    readonly hint: string
+  }
+  /** The home page's live hero and new sections. */
+  readonly landing: {
+    readonly liveCaption: string
+    readonly watch: string
+    readonly breakOne: string
+    readonly builtTitle: string
+    readonly builtBody: string
+    readonly builtLink: string
+    readonly whatItShows: string
+    readonly breakIt: string
+    readonly nodes: string
+  }
+  /** "How it's built" — the engineering page, for engineers and interviewers. */
+  readonly about: {
+    readonly title: string
+    readonly lede: string
+    readonly pillars: readonly { readonly title: string; readonly body: string; readonly path: string }[]
+    readonly creditTitle: string
+    readonly repo: string
+  }
   /** The scenario library's four reading-order tracks. lib/scenarios/tracks.ts. */
   readonly tracks: Readonly<Record<'start' | 'failures' | 'breaking' | 'advanced', { readonly title: string; readonly blurb: string }>>
 }
 
 const id: Dictionary = {
   nav: {
-    simulation: 'Simulasi',
+    simulation: 'Simulator',
     scenarios: 'Skenario',
-    ablation: 'Ablasi',
+    ablation: 'Lab Aturan',
+    about: 'Cara dibuat',
     tagline: 'Simulator konsensus Raft',
   },
   plain: {
@@ -481,6 +514,59 @@ const id: Dictionary = {
     selectNode: 'Klik sebuah node untuk melihat state-nya, menjatuhkannya, atau mengisolasinya.',
     lost: 'hilang',
   },
+  palette: {
+    open: 'Buka palet perintah',
+    placeholder: 'Cari halaman, skenario, atau aturan…',
+    pages: 'Halaman',
+    scenarios: 'Skenario',
+    breakRule: 'Matikan sebuah aturan',
+    empty: 'Tidak ada yang cocok.',
+    hint: 'Cari',
+  },
+  landing: {
+    liveCaption: 'Pemilihan yang bersih, diputar langsung dari simulator ini.',
+    watch: 'Tonton sebuah pemilihan',
+    breakOne: 'Matikan sebuah aturan',
+    builtTitle: 'Untuk yang sudah mengenal Raft',
+    builtBody: 'Simulasi deterministik, checker invariant yang tidak berbagi kode dengan algoritmanya, Figure 2 yang diimplementasikan aturan per aturan, dan fuzzing di setiap deploy.',
+    builtLink: 'Cara simulator ini dibuat',
+    whatItShows: 'Yang diperlihatkan',
+    breakIt: 'Rusak',
+    nodes: 'node',
+  },
+  about: {
+    title: 'Cara simulator ini dibuat',
+    lede: 'Sebuah simulator Raft yang bisa dirusak dengan sengaja — dan rekayasa yang membuat kerusakan itu bisa dipercaya.',
+    pillars: [
+      {
+        title: 'Fungsi murni, diputar ulang persis',
+        body: 'Simulasi adalah fungsi murni dari (config, seed, actions, flags). Jam virtual, PRNG ber-seed, dan tiebreak eksplisit untuk timestamp yang sama membuat setiap trace identik byte demi byte di mesin mana pun. Dari situlah datang time travel, tautan yang bisa dibagikan, dan laporan bug yang bisa direproduksi.',
+        path: 'lib/sim',
+      },
+      {
+        title: 'Figure 2, diimplementasikan secara harfiah',
+        body: 'Setiap aturan di lib/raft menyebutkan figure dan rule yang diimplementasikannya. Setiap rule punya fixture kesesuaian, ditambah suite untuk Figure 8, Figure 13, dan §6. Raft mudah dibuat hampir benar, dan hampir benar itu salah.',
+        path: 'lib/raft',
+      },
+      {
+        title: 'Checker yang tidak berbagi kode',
+        body: 'lib/invariants mengevaluasi lima properti keamanan dari definisinya atas state global, dan tidak mengimpor apa pun dari algoritma selain tipe. Checker yang memakai asumsi implementasinya sendiri akan memvalidasi bug-nya sendiri.',
+        path: 'lib/invariants',
+      },
+      {
+        title: 'Ablasi yang tidak bisa berbohong',
+        body: 'Ketujuh aturan adalah guard bernama di satu tempat, masing-masing dikonsultasikan di tepat satu call site. Setiap sakelar punya tes yang membuktikan propertinya gagal saat dimatikan dan bertahan saat dinyalakan — dua arah.',
+        path: 'lib/raft/rules.ts',
+      },
+      {
+        title: 'Di-fuzz sebelum setiap deploy',
+        body: 'Kelima properti bertahan di 10.000 run acak di bawah Raft yang tidak diubah, dengan log compaction dan perubahan keanggotaan aktif. Suite itu menjaga setiap deploy; seed yang gagal menjadi tes regresi permanen.',
+        path: 'tests/fuzz',
+      },
+    ],
+    creditTitle: 'Karya terdahulu dan sumber',
+    repo: 'Kode sumber di GitHub',
+  },
   tracks: {
     start: { title: 'Mulai di sini', blurb: 'Kasus biasa, lalu kenapa timeout dibuat acak.' },
     failures: { title: 'Saat ada yang gagal', blurb: 'Crash dan partisi, di bawah Raft yang tidak diubah.' },
@@ -492,9 +578,10 @@ const id: Dictionary = {
 const en: Dictionary = {
   ...id,
   nav: {
-    simulation: 'Simulation',
+    simulation: 'Simulator',
     scenarios: 'Scenarios',
-    ablation: 'Ablation',
+    ablation: 'Rules Lab',
+    about: "How it's built",
     tagline: 'A Raft consensus simulator',
   },
   plain: {
@@ -752,6 +839,59 @@ const en: Dictionary = {
     runSoFar: 'Run so far',
     selectNode: 'Click a node to see its state, crash it, or isolate it.',
     lost: 'lost',
+  },
+  palette: {
+    open: 'Open the command palette',
+    placeholder: 'Search pages, scenarios or rules…',
+    pages: 'Pages',
+    scenarios: 'Scenarios',
+    breakRule: 'Switch a rule off',
+    empty: 'Nothing matches.',
+    hint: 'Search',
+  },
+  landing: {
+    liveCaption: 'A clean election, playing live from this simulator.',
+    watch: 'Watch an election',
+    breakOne: 'Switch a rule off',
+    builtTitle: 'If you already know Raft',
+    builtBody: 'A deterministic simulation, an invariant checker that shares no code with the algorithm, Figure 2 implemented rule by rule, and a fuzz suite that gates every deploy.',
+    builtLink: "How it's built",
+    whatItShows: 'What it shows',
+    breakIt: 'Break it',
+    nodes: 'nodes',
+  },
+  about: {
+    title: "How it's built",
+    lede: 'A Raft simulator you can break on purpose — and the engineering that makes breaking it trustworthy.',
+    pillars: [
+      {
+        title: 'A pure function, replayed exactly',
+        body: 'The simulation is a pure function of (config, seed, actions, flags). A virtual clock, a seeded PRNG and an explicit tiebreak on equal timestamps make every trace byte-identical on any machine. That is what makes time travel, shareable links and reproducible bug reports possible.',
+        path: 'lib/sim',
+      },
+      {
+        title: 'Figure 2, implemented literally',
+        body: 'Every rule in lib/raft cites the figure and rule it implements. Each rule has a conformance fixture, alongside suites for Figure 8, Figure 13 and §6. Raft is easy to get almost right, and almost right is wrong.',
+        path: 'lib/raft',
+      },
+      {
+        title: 'A checker that shares no code',
+        body: 'lib/invariants evaluates the five safety properties from their definitions over global state, and imports nothing from the algorithm except types. A checker that reused the implementation’s assumptions would validate its own bugs.',
+        path: 'lib/invariants',
+      },
+      {
+        title: 'Ablation that cannot lie',
+        body: 'All seven rules are named guards in one file, each consulted at exactly one call site. Every switch has a test proving its property breaks when it is off and holds when it is on — both directions.',
+        path: 'lib/raft/rules.ts',
+      },
+      {
+        title: 'Fuzzed before every deploy',
+        body: 'All five properties hold across 10,000 randomized runs under unmodified Raft, with log compaction and membership changes active. The suite gates every deploy, and a failing seed becomes a permanent regression test.',
+        path: 'tests/fuzz',
+      },
+    ],
+    creditTitle: 'Prior art and sources',
+    repo: 'Source on GitHub',
   },
   tracks: {
     start: { title: 'Start here', blurb: 'The ordinary case, then why the timeouts are random.' },
