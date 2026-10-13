@@ -19,6 +19,7 @@ import {
 } from '@/lib/raft/rules'
 import type { Dictionary, Locale } from '@/lib/i18n'
 import { scenarioById } from '@/data/scenarios'
+import { flagCode } from '@/lib/share'
 import type { Violation } from '@/lib/invariants/types'
 
 interface Props {
@@ -149,7 +150,7 @@ export function AblationPanel({
                     )}
                     <Row label={dict.ablation.scenario}>
                       <Link
-                        href={`/${locale}/simulasi/#s=${scenario.id}&off=${flag}`}
+                        href={`/${locale}/simulasi/#s=${scenario.id}&off=${flagCode(flag)}`}
                         className="underline decoration-dotted underline-offset-2 hover:text-ink"
                       >
                         {scenario.id}

@@ -26,6 +26,12 @@ const FLAG_CODES: Readonly<Record<AblationFlagName, string>> = {
   jointConsensus: 'jc',
 }
 
+/** The hash code for a rule — what `off=` carries. Every link that switches a rule
+    off builds its field through this, never by hand. */
+export function flagCode(flag: AblationFlagName): string {
+  return FLAG_CODES[flag]
+}
+
 function flagFor(code: string): AblationFlagName | null {
   const found = ABLATION_FLAG_NAMES.find((name) => FLAG_CODES[name] === code)
   return found ?? null
