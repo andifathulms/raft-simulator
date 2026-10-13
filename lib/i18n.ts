@@ -184,6 +184,28 @@ interface Dictionary {
     readonly committed: string
     readonly violations: string
   }
+  /** The single-screen workbench: toolbar, safety strip, rail, dock, shortcuts. */
+  readonly workbench: {
+    readonly pickScenario: string
+    readonly search: string
+    readonly noMatch: string
+    readonly safety: string
+    readonly rules: string
+    readonly notRaft: string
+    readonly restore: string
+    readonly guide: string
+    readonly guideHint: string
+    readonly dismiss: string
+    readonly shortcuts: string
+    readonly close: string
+    readonly keys: readonly { readonly keys: string; readonly does: string }[]
+    readonly prevEvent: string
+    readonly nextEvent: string
+    readonly runSoFar: string
+    readonly selectNode: string
+  }
+  /** The scenario library's four reading-order tracks. lib/scenarios/tracks.ts. */
+  readonly tracks: Readonly<Record<'start' | 'failures' | 'breaking' | 'advanced', { readonly title: string; readonly blurb: string }>>
 }
 
 const id: Dictionary = {
@@ -427,6 +449,39 @@ const id: Dictionary = {
     committed: 'Ter-commit',
     violations: 'Pelanggaran',
   },
+  workbench: {
+    pickScenario: 'Pilih skenario',
+    search: 'Cari skenario…',
+    noMatch: 'Tidak ada skenario yang cocok.',
+    safety: 'Keamanan',
+    rules: 'Aturan',
+    notRaft: 'ini bukan Raft',
+    restore: 'Pulihkan Raft',
+    guide: 'Panduan',
+    guideHint: 'Pertama kali? Panduan menjelaskan bentuk, warna, dan pesan yang Anda lihat.',
+    dismiss: 'Tutup',
+    shortcuts: 'Pintasan keyboard',
+    close: 'Tutup',
+    keys: [
+      { keys: 'Spasi', does: 'Putar atau jeda' },
+      { keys: '← →', does: 'Mundur atau maju satu event' },
+      { keys: 'Shift + ← →', does: 'Mundur atau maju sepuluh event' },
+      { keys: 'J  K', does: 'Event penting sebelumnya atau berikutnya' },
+      { keys: 'Home  End', does: 'Ke awal atau akhir run' },
+      { keys: 'G', does: 'Buka panduan' },
+      { keys: '?', does: 'Tampilkan pintasan ini' },
+    ],
+    prevEvent: 'Event penting sebelumnya',
+    nextEvent: 'Event penting berikutnya',
+    runSoFar: 'Run sejauh ini',
+    selectNode: 'Klik sebuah node untuk melihat state-nya, menjatuhkannya, atau mengisolasinya.',
+  },
+  tracks: {
+    start: { title: 'Mulai di sini', blurb: 'Kasus biasa, lalu kenapa timeout dibuat acak.' },
+    failures: { title: 'Saat ada yang gagal', blurb: 'Crash dan partisi, di bawah Raft yang tidak diubah.' },
+    breaking: { title: 'Matikan sebuah aturan', blurb: 'Tiap skenario mematikan satu aturan dan memperlihatkan propertinya gagal.' },
+    advanced: { title: 'Lanjutan: §6 dan §7', blurb: 'Perubahan keanggotaan dan log compaction.' },
+  },
 }
 
 const en: Dictionary = {
@@ -663,6 +718,39 @@ const en: Dictionary = {
     elections: 'Elections',
     committed: 'Committed',
     violations: 'Violations',
+  },
+  workbench: {
+    pickScenario: 'Choose a scenario',
+    search: 'Search scenarios…',
+    noMatch: 'No scenario matches.',
+    safety: 'Safety',
+    rules: 'Rules',
+    notRaft: 'this is not Raft',
+    restore: 'Restore Raft',
+    guide: 'Guide',
+    guideHint: 'First time here? The guide explains the shapes, colours and messages you are looking at.',
+    dismiss: 'Dismiss',
+    shortcuts: 'Keyboard shortcuts',
+    close: 'Close',
+    keys: [
+      { keys: 'Space', does: 'Play or pause' },
+      { keys: '← →', does: 'Step back or forward one event' },
+      { keys: 'Shift + ← →', does: 'Step back or forward ten events' },
+      { keys: 'J  K', does: 'Previous or next notable event' },
+      { keys: 'Home  End', does: 'Jump to the start or end of the run' },
+      { keys: 'G', does: 'Open the guide' },
+      { keys: '?', does: 'Show these shortcuts' },
+    ],
+    prevEvent: 'Previous notable event',
+    nextEvent: 'Next notable event',
+    runSoFar: 'Run so far',
+    selectNode: 'Click a node to see its state, crash it, or isolate it.',
+  },
+  tracks: {
+    start: { title: 'Start here', blurb: 'The ordinary case, then why the timeouts are random.' },
+    failures: { title: 'When things fail', blurb: 'Crashes and partitions, under unmodified Raft.' },
+    breaking: { title: 'Break a rule', blurb: 'Each one switches a rule off and shows the property it defends fail.' },
+    advanced: { title: 'Advanced: §6 and §7', blurb: 'Membership changes and log compaction.' },
   },
 }
 

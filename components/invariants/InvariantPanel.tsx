@@ -15,7 +15,7 @@
 
 import type { Dictionary } from '@/lib/i18n'
 import { SAFETY_PROPERTIES, type SafetyProperty, type Violation } from '@/lib/invariants/types'
-import { disabledRulesProtecting, type AblationFlags } from '@/lib/raft/rules'
+import { disabledRulesProtecting, type AblationFlagName, type AblationFlags } from '@/lib/raft/rules'
 
 interface Props {
   readonly violations: readonly Violation[]
@@ -25,9 +25,14 @@ interface Props {
   readonly onJump: (step: number) => void
   /** DESIGN-REWORK.md §4: a broken property names the ablation rule(s) responsible. */
   readonly flags: AblationFlags
+  /** The property last selected from the safety strip, outlined so the eye lands on it. */
+  readonly focus?: SafetyProperty | null
+  /** Show the ablation rule responsible. A callback, never an `#ablation-…` link:
+      the URL hash is the share state, and a fragment link would overwrite it. */
+  readonly onRule?: (flag: AblationFlagName) => void
 }
 
-export function InvariantPanel({ violations, upToStep, dict, onJump, flags }: Props) {
+export function InvariantPanel({ violations, upToStep, dict, onJump, flags, focus = null, onRule }: Props) {
   const sofar = violations.filter((violation) => violation.stepIndex <= upToStep)
   const firstByProperty = new Map<SafetyProperty, Violation>()
   for (const violation of sofar) {
@@ -55,8 +60,10 @@ export function InvariantPanel({ violations, upToStep, dict, onJump, flags }: Pr
           return (
             <li
               key={property}
+              id={`safety-${property}`}
               className={[
-                'border-b border-ink-rule py-2',
+                'scroll-mt-24 border-b border-ink-rule px-2 py-2.5 last:border-b-0',
+                focus === property ? 'rounded-control outline outline-2 outline-ink-edge' : '',
                 // A 10% tint drops vermilion-on-tint to 4.39:1 against the page.
                 // 5% holds 5.30:1 on the card it sits in, and the row still reads as
                 // the only tinted one in the list.
@@ -71,13 +78,13 @@ export function InvariantPanel({ violations, upToStep, dict, onJump, flags }: Pr
                   className={[
                     'inline-flex h-4 w-4 shrink-0 items-center justify-center border text-[10px] font-bold leading-none',
                     broken
-                      ? 'border-vermilion text-vermilion'
-                      : 'border-committed bg-committed text-stock-pale',
+                      ? 'rotate-45 rounded-sm border-vermilion bg-vermilion text-stock-pale [&>*]:-rotate-45'
+                      : 'rounded-full border-committed bg-committed text-stock-pale',
                   ].join(' ')}
                 >
-                  {broken ? '×' : '✓'}
+                  <span>{broken ? '×' : '✓'}</span>
                 </span>
-                <span className="font-mono text-data">{dict.invariants.names[property]}</span>
+                <span className="font-sans text-label font-semibold">{dict.invariants.names[property]}</span>
                 <span
                   className={[
                     'ml-auto font-sans text-micro',
@@ -111,9 +118,17 @@ export function InvariantPanel({ violations, upToStep, dict, onJump, flags }: Pr
                   {disabledRulesProtecting(flags, property).map((flag) => (
                     <p key={flag} className="mt-1 font-mono text-micro text-vermilion">
                       {dict.invariants.disabledBy}:{' '}
-                      <a href={`#ablation-${flag}`} className="underline decoration-dotted underline-offset-2 hover:text-ink">
-                        {dict.ablation.rules[flag]?.title ?? flag}
-                      </a>
+                      {onRule === undefined ? (
+                        dict.ablation.rules[flag]?.title ?? flag
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => onRule(flag)}
+                          className="underline decoration-dotted underline-offset-2 hover:text-ink"
+                        >
+                          {dict.ablation.rules[flag]?.title ?? flag}
+                        </button>
+                      )}
                     </p>
                   ))}
                   <button

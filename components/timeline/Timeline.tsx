@@ -1,7 +1,13 @@
 'use client'
 
 /**
- * Scrubber and stepping controls.
+ * The transport dock: history, playhead and controls, pinned to the bottom of the
+ * workbench.
+ *
+ * It used to sit about 1,400px below the cluster it moved, so pressing play meant
+ * scrolling away from the thing that started moving. Now it docks: sticky to the
+ * viewport's bottom edge while the workbench is on screen, resting at the end of it
+ * otherwise.
  *
  * Stepping backwards is free, because the trace is materialised: nothing is
  * recomputed, the previous step is simply read. Animation timing lives here and never
@@ -12,7 +18,6 @@
 import { useEffect } from 'react'
 import { Riwayat } from '@/components/timeline/Riwayat'
 import type { Dictionary } from '@/lib/i18n'
-import { eventCitation, eventFields } from '@/lib/timeline/eventDetail'
 import { describeEvent, type Trace } from '@/lib/sim/trace'
 
 interface Props {
@@ -30,11 +35,23 @@ interface Props {
     readonly violations: readonly number[]
   }
   readonly dict: Dictionary
+  /** The run-so-far figures, rendered beside the transport. */
+  readonly summary?: React.ReactNode
+  readonly onShortcuts?: () => void
 }
 
-function nextAfter(marks: readonly number[], current: number): number | null {
+export function nextAfter(marks: readonly number[], current: number): number | null {
   for (const mark of marks) if (mark > current) return mark
   return null
+}
+
+export function previousBefore(marks: readonly number[], current: number): number | null {
+  let found: number | null = null
+  for (const mark of marks) {
+    if (mark >= current) break
+    found = mark
+  }
+  return found
 }
 
 export function Timeline({
@@ -47,6 +64,8 @@ export function Timeline({
   onSpeed,
   marks,
   dict,
+  summary,
+  onShortcuts,
 }: Props) {
   const last = trace.steps.length - 1
   const current = trace.steps[step]
@@ -71,29 +90,27 @@ export function Timeline({
     if (step >= last && playing) onPlaying(false)
   }, [step, last, playing, onPlaying])
 
+  const go = (target: number) => {
+    onPlaying(false)
+    onStep(Math.min(last, Math.max(0, target)))
+  }
+
   return (
-    <section aria-label={dict.sim.timeline} className="flex flex-col gap-2">
+    <section aria-label={dict.sim.timeline} className="flex flex-col gap-2.5">
       {/*
        * `Riwayat` is the picture; the range input is still the whole control. It sits
-       * on top, stretched over the drawing rather than beside it — DESIGN-REWORK.md
-       * §3.2: "What changes is that it sits on the history instead of standing in for
-       * it." Made visually transparent so only the drawing shows, but kept in the
-       * DOM exactly as before: same value, same onChange, same aria-valuetext, same
-       * tab order. A screen reader's experience of this control has not changed at
-       * all. Focus has to move to *something* visible, though — an invisible focus
-       * ring is no ring — so the group gets a ring instead of the input.
+       * on top, stretched over the drawing — visually transparent, but in the DOM
+       * exactly as before: same value, same onChange, same aria-valuetext, same tab
+       * order. Focus has to move to something visible, so the group gets the ring.
        */}
-      <div className="group relative">
-        <Riwayat trace={trace} step={step} />
+      <div className="group relative overflow-hidden rounded-control border border-ink-rule bg-stock-pale">
+        <Riwayat trace={trace} step={step} dense />
         <input
           type="range"
           min={0}
           max={last}
           value={step}
-          onChange={(event) => {
-            onPlaying(false)
-            onStep(Number(event.target.value))
-          }}
+          onChange={(event) => go(Number(event.target.value))}
           aria-label={dict.sim.timeline}
           // The raw step number says nothing on its own. Announce the virtual time and
           // what actually happened, which is what the scrubber is for.
@@ -104,117 +121,87 @@ export function Timeline({
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 hidden ring-2 ring-inset ring-leader group-focus-within:block"
+          className="pointer-events-none absolute inset-0 hidden rounded-control ring-2 ring-inset ring-leader group-focus-within:block"
         />
       </div>
 
-      <div className="flex flex-wrap items-center gap-1.5 font-sans text-label">
-        <Button onClick={() => { onPlaying(false); onStep(0) }} label="⏮" title={dict.sim.start} />
-        <Button
-          onClick={() => { onPlaying(false); onStep(Math.max(0, step - 1)) }}
-          label="◀"
-          title={dict.sim.back}
-        />
-        <button
-          type="button"
-          onClick={() => onPlaying(!playing)}
-          className="btn min-w-[6rem] border-ink font-medium"
-        >
-          {playing ? dict.sim.pause : dict.sim.play}
-        </button>
-        <Button
-          onClick={() => { onPlaying(false); onStep(Math.min(last, step + 1)) }}
-          label="▶"
-          title={dict.sim.forward}
-        />
-        <Button onClick={() => { onPlaying(false); onStep(last) }} label="⏭" title={dict.sim.end} />
-
-        <label className="ml-2 flex items-center gap-1 text-ink-soft">
-          {dict.sim.speed}
-          <select
-            value={speed}
-            onChange={(event) => onSpeed(Number(event.target.value))}
-            className="border border-ink-edge bg-stock-pale px-1.5 py-1"
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+        <div className="flex items-center gap-1">
+          <Key onClick={() => go(0)} label="⏮" title={dict.sim.start} />
+          <Key onClick={() => go(step - 1)} label="◀" title={dict.sim.back} />
+          {/* The one primary control on the workbench: round, filled, and the only
+              thing in the dock drawn in solid ink. */}
+          <button
+            type="button"
+            onClick={() => onPlaying(!playing)}
+            aria-label={playing ? dict.sim.pause : dict.sim.play}
+            title={`${playing ? dict.sim.pause : dict.sim.play} (Space)`}
+            className="mx-0.5 flex h-10 w-10 items-center justify-center rounded-full bg-ink text-stock-pale transition-colors hover:bg-ink-soft"
           >
-            {[0.5, 1, 2, 4, 8].map((option) => (
-              <option key={option} value={option}>
-                {option}×
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <span className="ml-auto font-mono text-micro tabular text-ink-faint">
-          {dict.sim.step} {step}/{last} · {dict.sim.time} {current?.time ?? 0}
-        </span>
-      </div>
-
-      {/* Jump to the next thing worth looking at. Scrubbing an event at a time is
-          how you inspect a run; these are how you find the moment worth inspecting. */}
-      <div className="flex flex-wrap items-center gap-1.5 font-sans text-micro">
-        <span className="field-label mr-1">{dict.sim.jumpTo}</span>
-        <Jump label={dict.sim.nextTerm} target={nextAfter(marks.terms, step)} onStep={onStep} onPlaying={onPlaying} />
-        <Jump label={dict.sim.nextElection} target={nextAfter(marks.elections, step)} onStep={onStep} onPlaying={onPlaying} />
-        <Jump label={dict.sim.nextCommit} target={nextAfter(marks.commits, step)} onStep={onStep} onPlaying={onPlaying} />
-        <Jump
-          label={dict.sim.nextViolation}
-          target={nextAfter(marks.violations, step)}
-          onStep={onStep}
-          onPlaying={onPlaying}
-          danger
-        />
-      </div>
-
-      {/* The event as what it is — a discriminated union with fields — not one line
-          of prose. DESIGN-REWORK.md §3.3. A small fixed panel, not folded away:
-          the sentence above the cluster says what happened in plain language, this
-          says it in the vocabulary of the paper, and both are worth having on
-          screen at once. */}
-      <div className="border border-ink-rule bg-stock-pale px-2.5 py-1.5">
-        <p className="field-label">{dict.plain.technicalDetail}</p>
-        {current === undefined ? (
-          <p className="mt-1 font-mono text-micro tabular text-ink-faint">—</p>
-        ) : (
-          <>
-            <dl className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 font-mono text-micro tabular text-ink-soft">
-              {eventFields(current.event).map((field) => (
-                <div key={field.key} className="flex gap-1.5">
-                  <dt className="text-ink-faint">{dict.eventDetail[field.key]}:</dt>
-                  <dd>
-                    {(field.key === 'accepted' || field.key === 'duplicate') && field.value === 'yes'
-                      ? dict.eventDetail.yes
-                      : (field.key === 'accepted' || field.key === 'duplicate') && field.value === 'no'
-                        ? dict.eventDetail.no
-                        : field.value}
-                  </dd>
-                </div>
+            <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden className="fill-current">
+              {playing ? (
+                <path d="M3.5 2h3v12h-3zM9.5 2h3v12h-3z" />
+              ) : (
+                <path d="M4 2.2v11.6c0 .6.6.9 1.1.6l9-5.8c.5-.3.5-1 0-1.3l-9-5.8C4.6 1.2 4 1.6 4 2.2z" />
+              )}
+            </svg>
+          </button>
+          <Key onClick={() => go(step + 1)} label="▶" title={dict.sim.forward} />
+          <Key onClick={() => go(last)} label="⏭" title={dict.sim.end} />
+          <label className="ml-1.5 flex items-center gap-1 font-sans text-micro text-ink-soft">
+            <span className="sr-only">{dict.sim.speed}</span>
+            <select
+              value={speed}
+              onChange={(event) => onSpeed(Number(event.target.value))}
+              title={dict.sim.speed}
+              className="input py-1 pl-1.5 pr-1 font-mono text-micro"
+            >
+              {[0.5, 1, 2, 4, 8].map((option) => (
+                <option key={option} value={option}>
+                  {option}×
+                </option>
               ))}
-            </dl>
-            {eventCitation(current.event) !== null && (
-              <p className="mt-1 border-t border-ink-rule pt-1 font-mono text-micro text-ink-faint">
-                {eventCitation(current.event)}
-              </p>
-            )}
-          </>
-        )}
+            </select>
+          </label>
+        </div>
+
+        <p className="font-mono text-micro tabular text-ink-faint">
+          <span className="font-semibold text-ink">{step}</span>/{last} · {dict.sim.time.toLowerCase()} {current?.time ?? 0}
+        </p>
+
+        {summary}
+
+        {/* Jump to the next thing worth looking at. Scrubbing an event at a time is
+            how you inspect a run; these are how you find the moment worth inspecting. */}
+        <div className="flex flex-wrap items-center gap-1 lg:ml-auto">
+          <span className="sr-only">{dict.sim.jumpTo}</span>
+          <Jump label={dict.sim.nextElection} target={nextAfter(marks.elections, step)} go={go} />
+          <Jump label={dict.sim.nextCommit} target={nextAfter(marks.commits, step)} go={go} />
+          <Jump label={dict.sim.nextViolation} target={nextAfter(marks.violations, step)} go={go} danger />
+          {onShortcuts !== undefined && (
+            <button
+              type="button"
+              onClick={onShortcuts}
+              title={dict.workbench.shortcuts}
+              aria-label={dict.workbench.shortcuts}
+              className="kbd ml-1 hidden h-6 cursor-pointer px-1.5 hover:text-ink sm:inline-flex"
+            >
+              ?
+            </button>
+          )}
+        </div>
       </div>
-      {trace.truncated && (
-        <p className="font-sans text-micro text-ink-faint">{dict.sim.truncated}</p>
-      )}
+      {trace.truncated && <p className="font-sans text-micro text-ink-faint">{dict.sim.truncated}</p>}
     </section>
   )
 }
 
-function Button({ onClick, label, title }: { onClick: () => void; label: string; title: string }) {
+function Key({ onClick, label, title }: { onClick: () => void; label: string; title: string }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      title={title}
-      aria-label={title}
-      className="btn btn-small"
-    >
-      {label}
+    <button type="button" onClick={onClick} title={title} aria-label={title} className="btn btn-icon">
+      <span aria-hidden className="text-[0.6875rem]">
+        {label}
+      </span>
     </button>
   )
 }
@@ -222,14 +209,12 @@ function Button({ onClick, label, title }: { onClick: () => void; label: string;
 function Jump({
   label,
   target,
-  onStep,
-  onPlaying,
+  go,
   danger = false,
 }: {
   label: string
   target: number | null
-  onStep: (step: number) => void
-  onPlaying: (playing: boolean) => void
+  go: (step: number) => void
   danger?: boolean
 }) {
   return (
@@ -237,16 +222,17 @@ function Jump({
       type="button"
       disabled={target === null}
       onClick={() => {
-        if (target === null) return
-        onPlaying(false)
-        onStep(target)
+        if (target !== null) go(target)
       }}
       className={[
-        'btn btn-small',
-        danger ? 'btn-violation' : '',
+        'rounded-full border px-2.5 py-0.5 font-sans text-micro transition-colors disabled:cursor-not-allowed disabled:opacity-40',
+        // Vermilion only when there is a violation ahead to jump to.
+        danger && target !== null
+          ? 'border-vermilion text-vermilion hover:bg-vermilion hover:text-stock-pale'
+          : 'border-ink-rule text-ink-soft hover:border-ink-edge hover:text-ink',
       ].join(' ')}
     >
-      {label}
+      ⇥ {label}
     </button>
   )
 }

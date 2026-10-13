@@ -9,8 +9,9 @@
  * `aria-valuetext` already says what happened rather than a raw step number. This
  * component is the picture beside it, not a replacement for it.
  *
- * Standalone for now (DESIGN-REWORK.md build order, step 4): not wired into
- * `Simulator.tsx` yet. `onStep` is accepted so wiring it in is a prop, not a rewrite.
+ * `dense` is the docked form: the same drawing at roughly half the height, so the
+ * whole history fits in the transport dock at the bottom of the workbench without
+ * taking the screen away from the cluster and the ledger.
  */
 
 import { ROLE_BADGE, ROLE_FILL } from '@/components/cluster/glyph'
@@ -21,12 +22,11 @@ interface Props {
   readonly trace: Trace
   readonly step: number
   readonly onStep?: (step: number) => void
+  readonly dense?: boolean
 }
 
-const TERM_BAND_HEIGHT = 16
-const LANE_HEIGHT = 22
-const LANE_GAP = 3
-const VIOLATION_HEIGHT = 10
+const FULL = { termBand: 16, lane: 22, gap: 3, violation: 10, label: 7, termLabel: 6 }
+const DENSE = { termBand: 12, lane: 11, gap: 2, violation: 6, label: 6, termLabel: 5.5 }
 const TOP_MARGIN = 2
 const BOTTOM_MARGIN = 2
 
@@ -43,7 +43,12 @@ const DEPLETE_BANDS = [
   { from: 0.75, to: 1, at: 0.875 },
 ]
 
-export function Riwayat({ trace, step, onStep }: Props) {
+export function Riwayat({ trace, step, onStep, dense = false }: Props) {
+  const size = dense ? DENSE : FULL
+  const TERM_BAND_HEIGHT = size.termBand
+  const LANE_HEIGHT = size.lane
+  const LANE_GAP = size.gap
+  const VIOLATION_HEIGHT = size.violation
   const last = trace.steps.length - 1
   const first = trace.steps[0]
   const nodeCount = first?.nodes.length ?? 0
@@ -94,7 +99,7 @@ export function Riwayat({ trace, step, onStep }: Props) {
               x={band.from + 0.3}
               y={TOP_MARGIN + TERM_BAND_HEIGHT - 4}
               className="fill-ink-soft"
-              style={{ fontSize: 6 }}
+              style={{ fontSize: size.termLabel }}
             >
               t{band.term}
             </text>
@@ -139,8 +144,9 @@ export function Riwayat({ trace, step, onStep }: Props) {
               <text
                 x={run.from + 0.3}
                 y={y + LANE_HEIGHT / 2 + 2.5}
-                className="fill-ink font-bold"
-                style={{ fontSize: 7 }}
+                // The letter follows the fill's lightness, the same rule as the node digit.
+                className={['font-bold', run.role === 'leader' ? 'fill-stock-pale' : 'fill-ink-role'].join(' ')}
+                style={{ fontSize: size.label }}
               >
                 {ROLE_BADGE[run.role]}
               </text>
@@ -175,7 +181,15 @@ export function Riwayat({ trace, step, onStep }: Props) {
       ))}
 
       {/* The playhead. */}
-      <line x1={step + 0.5} x2={step + 0.5} y1={0} y2={height} className="stroke-leader" strokeWidth={0.5} />
+      <line
+        x1={step + 0.5}
+        x2={step + 0.5}
+        y1={0}
+        y2={height}
+        className="stroke-ink"
+        strokeWidth={1.5}
+        vectorEffect="non-scaling-stroke"
+      />
     </svg>
   )
 }
