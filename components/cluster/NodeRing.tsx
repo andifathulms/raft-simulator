@@ -8,7 +8,7 @@
  * survives both colour blindness and a greyscale screenshot.
  */
 
-import { NodeShape, ROLE_BADGE } from '@/components/cluster/glyph'
+import { NodeShape, ROLE_BADGE, ROLE_INK } from '@/components/cluster/glyph'
 import type { Dictionary } from '@/lib/i18n'
 import { describeConfiguration, isMember, type Configuration } from '@/lib/raft/configuration'
 import { configurationOf } from '@/lib/raft/log'
@@ -27,18 +27,60 @@ const SIZE = 420
 const CENTRE = SIZE / 2
 const RADIUS = 150
 
-// The depleting rule, sized to sit between the node shape (extends to about ±22)
-// and the term/commit line beneath it (at y=40).
-const BAR_WIDTH = 34
-const BAR_HALF_WIDTH = BAR_WIDTH / 2
-const BAR_HEIGHT = 3
-const BAR_Y = 26
+// Figure 2, Rules for Servers, Followers rule 2: the election timer, drawn as a ring
+// around the follower. It used to be a 3px bar under the node — the protocol's
+// driving force at the size of an underline. Same computed fraction, now visible.
+const TIMER_RADIUS = 30
+const TIMER_WIDTH = 3
+
+// Messages travel on a gentle curve bowed toward the centre rather than a straight
+// chord, so the many links of a five-node cluster stop crossing in one knot.
+const BOW = 0.22
 
 function position(index: number, count: number): { x: number; y: number } {
-  // Node 0 at the top, then clockwise. Deterministic layout: the same cluster is
-  // always drawn the same way, so screenshots between runs are comparable.
   const angle = (index / count) * Math.PI * 2 - Math.PI / 2
   return { x: CENTRE + Math.cos(angle) * RADIUS, y: CENTRE + Math.sin(angle) * RADIUS }
+}
+
+interface Point {
+  readonly x: number
+  readonly y: number
+}
+
+/** The control point of the link from `a` to `b`: its midpoint, pulled toward the centre. */
+function bow(a: Point, b: Point): Point {
+  const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }
+  return { x: mid.x + (CENTRE - mid.x) * BOW, y: mid.y + (CENTRE - mid.y) * BOW }
+}
+
+/** A point `t` of the way along the quadratic curve a → c → b. */
+function along(a: Point, c: Point, b: Point, t: number): Point {
+  const u = 1 - t
+  return { x: u * u * a.x + 2 * u * t * c.x + t * t * b.x, y: u * u * a.y + 2 * u * t * c.y + t * t * b.y }
+}
+
+/**
+ * A slip takes the colour of the role whose RPC it belongs to — vote traffic is a
+ * candidate's, replication and snapshots a leader's — and replies are dashed. This
+ * is the role palette reused, not a new one: a slip is coloured by who asked.
+ */
+function slipStyle(message: InFlight['message']): { stroke: string; reply: boolean } {
+  switch (message.type) {
+    case 'RequestVote':
+      return { stroke: 'stroke-candidate', reply: false }
+    case 'RequestVoteResponse':
+      return { stroke: 'stroke-candidate', reply: true }
+    case 'AppendEntries':
+    case 'InstallSnapshot':
+      return { stroke: 'stroke-leader', reply: false }
+    case 'AppendEntriesResponse':
+    case 'InstallSnapshotResponse':
+      return { stroke: 'stroke-leader', reply: true }
+    default: {
+      const unreachable: never = message
+      throw new Error(`Unhandled message: ${JSON.stringify(unreachable)}`)
+    }
+  }
 }
 
 function slipLabel(flight: InFlight): string {
@@ -92,7 +134,7 @@ export function NodeRing({ step, dict, onNodeAction, selected, onSelect }: Props
           r={RADIUS}
           fill="none"
           className="stroke-ink-rule"
-          strokeWidth="1"
+          strokeWidth="1.25"
           strokeDasharray={split ? '6 10' : undefined}
         />
 
@@ -100,34 +142,34 @@ export function NodeRing({ step, dict, onNodeAction, selected, onSelect }: Props
         {step.inFlight.slice(0, 24).map((flight) => {
           const from = position(flight.message.from, count)
           const to = position(flight.message.to, count)
+          const control = bow(from, to)
           const span = Math.max(1, flight.arrivesAt - flight.sentAt)
           const progress = Math.min(1, Math.max(0, (step.time - flight.sentAt) / span))
-          const x = from.x + (to.x - from.x) * progress
-          const y = from.y + (to.y - from.y) * progress
+          const at = along(from, control, to, progress)
+          const style = slipStyle(flight.message)
           return (
             <g key={`${flight.seq}`} className="slip-in">
-              <line
-                x1={from.x}
-                y1={from.y}
-                x2={to.x}
-                y2={to.y}
+              <path
+                d={`M ${from.x} ${from.y} Q ${control.x} ${control.y} ${to.x} ${to.y}`}
+                fill="none"
                 className="stroke-ink-rule"
-                strokeWidth="0.5"
+                strokeWidth="1"
               />
               <rect
-                x={x - 17}
-                y={y - 8}
-                width="34"
-                height="16"
-                rx="2"
-                className="fill-stock-pale stroke-ink-soft"
-                strokeWidth="0.75"
+                x={at.x - 18}
+                y={at.y - 8.5}
+                width="36"
+                height="17"
+                rx="4"
+                className={`fill-stock-raised ${style.stroke}`}
+                strokeWidth="1.5"
+                strokeDasharray={style.reply ? '3 2' : undefined}
               />
               <text
-                x={x}
-                y={y + 4}
+                x={at.x}
+                y={at.y + 3.5}
                 textAnchor="middle"
-                className="fill-ink text-[9px] font-mono tabular"
+                className="fill-ink text-[9px] font-mono font-medium tabular"
               >
                 {slipLabel(flight)}
               </text>
@@ -135,10 +177,42 @@ export function NodeRing({ step, dict, onNodeAction, selected, onSelect }: Props
           )
         })}
 
+        {/* A message the network just lost: a ghost slip, dotted, halfway along
+            the link it never finished. Loss is the default condition (CLAUDE.md
+            invariant 9), so it should be visible when it happens, not silent. */}
+        {step.event.kind === 'drop' &&
+          (() => {
+            const message = step.event.message
+            const from = position(message.from, count)
+            const to = position(message.to, count)
+            const at = along(from, bow(from, to), to, 0.5)
+            return (
+              <g aria-hidden className="slip-in">
+                <rect
+                  x={at.x - 20}
+                  y={at.y - 8.5}
+                  width="40"
+                  height="17"
+                  rx="4"
+                  className="fill-stock-pale stroke-ink-faint"
+                  strokeWidth="1.25"
+                  strokeDasharray="1.5 2.5"
+                />
+                <text x={at.x} y={at.y + 3.5} textAnchor="middle" className="fill-ink-faint text-[9px] font-mono">
+                  {dict.workbench.lost}
+                </text>
+              </g>
+            )
+          })()}
+
         {step.nodes.map((node) => {
           const { x, y } = position(node.id, count)
           const crashed = step.crashed[node.id] === true
           const isSelected = selected === node.id
+          const fraction =
+            node.role === 'follower' && !crashed
+              ? electionTimeoutFraction(step.time, step.electionTimers[node.id] ?? null)
+              : null
           return (
             <g
               key={node.id}
@@ -147,94 +221,86 @@ export function NodeRing({ step, dict, onNodeAction, selected, onSelect }: Props
               className="cursor-pointer"
               tabIndex={0}
               role="button"
+              aria-pressed={isSelected}
               aria-label={`Node ${node.id}, ${node.role}, term ${node.currentTerm}`}
               onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') onSelect(isSelected ? null : node.id)
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault()
+                  onSelect(isSelected ? null : node.id)
+                }
               }}
             >
               {isSelected && (
-                <circle r="30" fill="none" className="stroke-ink" strokeWidth="1" strokeDasharray="2 3" />
+                <circle r="37" fill="none" className="stroke-ink" strokeWidth="1.25" strokeDasharray="2 3" />
+              )}
+              {/* The leader's halo: still, not pulsing. The election timer is the only
+                  ambient motion in the app (PRD §10), and it encodes information. */}
+              {node.role === 'leader' && !crashed && (
+                <rect x="-29" y="-29" width="58" height="58" rx="12" className="fill-leader/10 stroke-leader/40" strokeWidth="1" />
               )}
               {/* §6 — a server outside the configuration is not part of the cluster.
                   Drawn with a dashed outer ring rather than a colour, because colour
                   is spoken for and membership is not a state of the server. */}
               {!isMember(configurationOf(node.log), node.id) && (
-                <circle
-                  r="27"
-                  fill="none"
-                  className="stroke-ink-faint"
-                  strokeWidth="1"
-                  strokeDasharray="1 4"
-                />
+                <circle r="33" fill="none" className="stroke-ink-faint" strokeWidth="1" strokeDasharray="1 4" />
               )}
-              <NodeShape role={node.role} crashed={crashed} />
               {/* Figure 2, Rules for Servers, Followers rule 2: the randomized election
                   timeout, depleting toward the instant this follower becomes a
                   candidate. A pure function of (now, lastHeartbeat, electionTimeout)
                   from the trace at this step — not a CSS animation with a duration —
-                  so it refills on stepping back and redraws correctly on a jump. Drawn
-                  only for followers: a leader has no election timeout, and a candidate
-                  racing its own timeout is a different moment than this document
-                  addresses. */}
-              {node.role === 'follower' && !crashed && (
+                  so it refills on stepping back and redraws correctly on a jump.
+                  Drawn only for followers: a leader has no election timeout. */}
+              {fraction !== null && (
                 <g aria-hidden>
-                  <rect
-                    x={-BAR_HALF_WIDTH}
-                    y={BAR_Y}
-                    width={BAR_WIDTH}
-                    height={BAR_HEIGHT}
-                    className="fill-stock-deep stroke-ink-rule"
-                    strokeWidth="0.5"
-                  />
-                  <rect
-                    x={-BAR_HALF_WIDTH}
-                    y={BAR_Y}
-                    width={BAR_WIDTH * electionTimeoutFraction(step.time, step.electionTimers[node.id] ?? null)}
-                    height={BAR_HEIGHT}
-                    className="fill-ink-edge"
+                  <circle r={TIMER_RADIUS} fill="none" className="stroke-ink-rule" strokeWidth={TIMER_WIDTH} />
+                  <circle
+                    r={TIMER_RADIUS}
+                    fill="none"
+                    className="stroke-ink-soft"
+                    strokeWidth={TIMER_WIDTH}
+                    strokeLinecap="round"
+                    pathLength={100}
+                    strokeDasharray={`${Math.max(0, Math.min(100, fraction * 100))} 100`}
+                    transform="rotate(-90)"
                   />
                 </g>
               )}
-              {/* The digit sits on the role fill, so its colour has to follow the
-                  fill's lightness: pale ink on the deep blue leader, dark ink on the
-                  mid-toned follower and the amber candidate. Set at 19px bold, which
-                  is large text by WCAG, so the 3:1 threshold applies — dark ink on
-                  the follower reaches 3.41:1 and cannot do better, the follower slate
-                  being fixed by the palette. The id is also in the group's
-                  aria-label, so nothing depends on reading the digit. */}
+              <NodeShape role={node.role} crashed={crashed} />
+              {/* The digit follows the fill's lightness (glyph.tsx, ROLE_INK). Set at
+                  19px bold, large text by WCAG; the id is also in the aria-label. */}
               <text
-                y="6"
+                y="6.5"
                 textAnchor="middle"
                 className={[
-                  'text-[19px] font-mono font-bold tabular pointer-events-none',
-                  crashed ? 'fill-ink' : node.role === 'leader' ? 'fill-stock-pale' : 'fill-ink',
+                  'pointer-events-none text-[19px] font-mono font-bold tabular',
+                  crashed ? 'fill-ink-faint' : ROLE_INK[node.role],
                 ].join(' ')}
               >
                 {node.id}
               </text>
               {/* Badge: the role in one letter, so the shape is doubly redundant. */}
-              <circle cx="18" cy="-18" r="8" className="fill-stock-pale stroke-ink" strokeWidth="1" />
+              <circle cx="20" cy="-20" r="8" className="fill-stock-raised stroke-ink" strokeWidth="1" />
               <text
-                x="18"
-                y="-15"
+                x="20"
+                y="-17"
                 textAnchor="middle"
-                className="fill-ink text-[9px] font-mono font-bold pointer-events-none"
+                className="pointer-events-none fill-ink text-[9px] font-mono font-bold"
               >
                 {crashed ? '×' : ROLE_BADGE[node.role]}
               </text>
               <text
-                y="40"
+                y="47"
                 textAnchor="middle"
-                className="fill-ink-soft text-[10px] font-mono tabular pointer-events-none"
+                className="pointer-events-none fill-ink-soft text-[10px] font-mono tabular"
               >
-                t{node.currentTerm} c{node.commitIndex}
+                t{node.currentTerm} · c{node.commitIndex}
               </text>
               {/* Partition group, only when there is more than one. */}
               {split && (
                 <text
-                  y="52"
+                  y="59"
                   textAnchor="middle"
-                  className="fill-ink-faint text-[9px] font-mono pointer-events-none"
+                  className="pointer-events-none fill-ink-faint text-[9px] font-mono"
                 >
                   {dict.sim.partitionGroup} {step.network.partitionOf[node.id]}
                 </text>
@@ -244,7 +310,7 @@ export function NodeRing({ step, dict, onNodeAction, selected, onSelect }: Props
         })}
       </svg>
 
-      <p className="text-center font-mono text-[11px] tabular text-ink-soft">
+      <p className="text-center font-mono text-micro tabular text-ink-soft">
         {dict.sim.configuration}: {describeConfiguration(configuration)}
       </p>
 
@@ -271,30 +337,28 @@ function NodeDetail({
 }) {
   if (node === null) {
     return (
-      <p className="text-xs text-ink-faint font-sans text-center">
-        {dict.sim.submitHint}
-      </p>
+      <p className="text-center font-sans text-micro text-ink-faint">{dict.workbench.selectNode}</p>
     )
   }
   const crashed = step.crashed[node.id] === true
   return (
-    <div className="border border-ink-rule bg-stock-pale p-3 text-xs font-mono tabular">
-      <div className="flex items-baseline justify-between mb-2">
-        <span className="font-sans font-semibold text-sm">
+    <div className="rounded-panel border border-ink-rule bg-stock-raised p-3 font-mono text-micro tabular">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <span className="font-sans text-label font-semibold">
           node {node.id} — {crashed ? dict.roles.crashed : dict.roles[node.role]}
         </span>
         {onNodeAction !== undefined && (
           <span className="flex gap-1">
             <button
               type="button"
-              className="border border-ink-edge px-2 py-0.5 font-sans hover:bg-stock-deep"
+              className="btn btn-small"
               onClick={() => onNodeAction(node.id, crashed ? 'restart' : 'crash')}
             >
               {crashed ? dict.sim.restart : dict.sim.crash}
             </button>
             <button
               type="button"
-              className="border border-ink-edge px-2 py-0.5 font-sans hover:bg-stock-deep"
+              className="btn btn-small"
               onClick={() => onNodeAction(node.id, 'isolate')}
             >
               {dict.sim.isolate}

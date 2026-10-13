@@ -43,7 +43,7 @@ export function LogLedger({ step, dict }: Props) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full border-collapse font-mono text-data tabular">
-        <caption className="caption-bottom pt-3 text-left font-sans text-micro leading-relaxed text-ink-faint">
+        <caption className="caption-bottom pt-2.5 text-left font-sans text-micro leading-relaxed text-ink-faint">
           {dict.ledger.legend}
         </caption>
         <thead>
@@ -71,12 +71,21 @@ export function LogLedger({ step, dict }: Props) {
         </thead>
         <tbody>
           {indices.map((index) => (
-            <tr key={index} className={disagreements.has(index) ? 'bg-stock-deep' : undefined}>
+            // A row where the nodes disagree gets an amber rail and wash: contested,
+            // the way a candidate's claim is contested. Divergence should be the first
+            // thing the eye finds in the table, not something read cell by cell.
+            <tr key={index} className={disagreements.has(index) ? 'bg-candidate/10' : undefined}>
               <th
                 scope="row"
-                className="border-b border-ink-rule px-2 py-1.5 text-right font-normal text-ink-faint"
+                className={[
+                  'border-b border-ink-rule px-2 py-1.5 text-right font-normal',
+                  disagreements.has(index)
+                    ? 'font-semibold text-ink shadow-[inset_3px_0_0_rgb(var(--c-candidate))]'
+                    : 'text-ink-faint',
+                ].join(' ')}
               >
                 {index}
+                {disagreements.has(index) && <span className="sr-only">, {dict.ledger.diverged}</span>}
               </th>
               {step.nodes.map((node) => (
                 <Cell
@@ -186,7 +195,7 @@ function Cell({
     <td
       className={[
         'border-b border-l border-ink-rule px-2 py-1',
-        committed ? 'bg-committed/10' : 'bg-stock-pale',
+        committed ? 'bg-committed/[0.08]' : '',
         markerClass,
       ].join(' ')}
       title={`index ${index}, term ${entry.term}, ${
@@ -206,9 +215,9 @@ function Cell({
             and say so with an outline rather than a colour. */}
         <span
           className={[
-            'inline-block w-5 text-center text-[10px] leading-4 border',
+            'inline-block min-w-[1.375rem] rounded border px-0.5 text-center text-[10px] leading-4',
             committed
-              ? 'border-committed text-committed font-bold'
+              ? 'border-committed bg-committed/15 font-bold text-committed'
               : 'border-dashed border-ink-faint text-ink-faint',
           ].join(' ')}
           aria-hidden
@@ -239,16 +248,20 @@ function Legend({ dict }: { dict: Dictionary }) {
   return (
     <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 border-t border-ink-rule pt-3 font-sans text-micro text-ink-soft">
       <li className="flex items-center gap-1.5">
-        <span className="inline-block w-5 text-center border border-committed text-committed text-[10px] font-bold">
+        <span className="inline-block min-w-[1.375rem] rounded border border-committed bg-committed/15 text-center text-[10px] font-bold text-committed">
           2
         </span>
         {dict.ledger.committed}
       </li>
       <li className="flex items-center gap-1.5">
-        <span className="inline-block w-5 text-center border border-dashed border-ink-faint text-ink-faint text-[10px]">
+        <span className="inline-block min-w-[1.375rem] rounded border border-dashed border-ink-faint text-center text-[10px] text-ink-faint">
           2
         </span>
         {dict.ledger.uncommitted}
+      </li>
+      <li className="flex items-center gap-1.5">
+        <span className="inline-block h-4 w-5 bg-candidate/10 shadow-[inset_3px_0_0_rgb(var(--c-candidate))]" />
+        {dict.ledger.diverged}
       </li>
       <li className="flex items-center gap-1.5">
         <span className="text-committed">✓</span>

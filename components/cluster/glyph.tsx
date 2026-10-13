@@ -15,6 +15,17 @@ export const ROLE_FILL: Record<Role, string> = {
   leader: 'fill-leader',
 }
 
+/**
+ * The digit or letter set on a role fill follows the fill's lightness: pale on the
+ * deep leader, `ink.role` on the follower and candidate — which is dark ink in both
+ * themes, because in dark the follower and candidate fills are the light things.
+ */
+export const ROLE_INK: Record<Role, string> = {
+  follower: 'fill-ink-role',
+  candidate: 'fill-ink-role',
+  leader: 'fill-stock-pale',
+}
+
 export const ROLE_BADGE: Record<Role, string> = {
   follower: 'F',
   candidate: 'C',
@@ -29,14 +40,15 @@ export function NodeShape({ role, crashed }: { role: Role; crashed: boolean }) {
   }
   switch (role) {
     case 'leader':
-      return <rect x="-21" y="-21" width="42" height="42" className={className} strokeWidth="1.5" />
+      return <rect x="-21" y="-21" width="42" height="42" rx="7" className={className} strokeWidth="1.5" />
     case 'candidate':
       return (
         <rect
-          x="-20"
-          y="-20"
-          width="40"
-          height="40"
+          x="-19"
+          y="-19"
+          width="38"
+          height="38"
+          rx="4"
           transform="rotate(45)"
           className={className}
           strokeWidth="1.5"
@@ -73,10 +85,7 @@ export function RoleGlyph({
       <text
         y="6"
         textAnchor="middle"
-        className={[
-          'text-[19px] font-mono font-bold tabular',
-          crashed ? 'fill-ink' : role === 'leader' ? 'fill-stock-pale' : 'fill-ink',
-        ].join(' ')}
+        className={['text-[19px] font-mono font-bold tabular', crashed ? 'fill-ink-faint' : ROLE_INK[role]].join(' ')}
       >
         {crashed ? '×' : ROLE_BADGE[role]}
       </text>

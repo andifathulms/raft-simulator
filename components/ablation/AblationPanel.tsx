@@ -190,9 +190,11 @@ export function AblationPanel({
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex gap-2">
+    // Wraps as a unit: a long scenario id drops to its own line rather than being
+    // broken a letter at a time beside its label.
+    <div className="flex flex-wrap gap-x-2">
       <dt className="shrink-0">{label}:</dt>
-      <dd className="text-ink-soft">{children}</dd>
+      <dd className="max-w-full break-words text-ink-soft">{children}</dd>
     </div>
   )
 }

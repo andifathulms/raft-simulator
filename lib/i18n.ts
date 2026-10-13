@@ -113,6 +113,8 @@ interface Dictionary {
     /** DESIGN-REWORK.md §5 — matchIndex and nextIndex drawn on the ledger itself. */
     readonly matchIndex: string
     readonly nextIndex: string
+    /** A row where the nodes hold different entries. */
+    readonly diverged: string
   }
   readonly invariants: {
     readonly holding: string
@@ -203,6 +205,7 @@ interface Dictionary {
     readonly nextEvent: string
     readonly runSoFar: string
     readonly selectNode: string
+    readonly lost: string
   }
   /** The scenario library's four reading-order tracks. lib/scenarios/tracks.ts. */
   readonly tracks: Readonly<Record<'start' | 'failures' | 'breaking' | 'advanced', { readonly title: string; readonly blurb: string }>>
@@ -338,6 +341,7 @@ const id: Dictionary = {
     compacted: 'sudah di-snapshot (§7)',
     matchIndex: 'matchIndex leader untuk node ini',
     nextIndex: 'nextIndex leader untuk node ini — yang akan dicoba berikutnya',
+    diverged: 'node tidak sepakat di baris ini',
     legend:
       'Baris disejajarkan pada index. Log yang menyimpang terbaca sebagai garis yang patah.',
   },
@@ -475,6 +479,7 @@ const id: Dictionary = {
     nextEvent: 'Event penting berikutnya',
     runSoFar: 'Run sejauh ini',
     selectNode: 'Klik sebuah node untuk melihat state-nya, menjatuhkannya, atau mengisolasinya.',
+    lost: 'hilang',
   },
   tracks: {
     start: { title: 'Mulai di sini', blurb: 'Kasus biasa, lalu kenapa timeout dibuat acak.' },
@@ -615,6 +620,7 @@ const en: Dictionary = {
     compacted: 'snapshotted away (§7)',
     matchIndex: "the leader's matchIndex for this node",
     nextIndex: "the leader's nextIndex for this node — what it will try next",
+    diverged: 'the nodes disagree at this row',
     legend: 'Rows align on index. A divergent log reads as a broken line.',
   },
   invariants: {
@@ -745,6 +751,7 @@ const en: Dictionary = {
     nextEvent: 'Next notable event',
     runSoFar: 'Run so far',
     selectNode: 'Click a node to see its state, crash it, or isolate it.',
+    lost: 'lost',
   },
   tracks: {
     start: { title: 'Start here', blurb: 'The ordinary case, then why the timeouts are random.' },
